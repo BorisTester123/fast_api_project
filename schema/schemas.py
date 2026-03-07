@@ -6,12 +6,15 @@ class SBookAdd(BaseModel):
         title: str = ""
         description: str = ""
 
-        @field_validator("title", "description")
+        @field_validator("name")
         @classmethod
-        def check_not_empty(cls, v: str, info):
-            if not v.strip():
+        def validate_name(cls, v: str, info):
+            v_clean = v.strip()
+            if not v_clean:
                 raise ValueError(f"Поле '{info.field_name}' не может быть пустым")
-            return v
+            if len(v_clean) > 20:
+                raise ValueError(f"Поле '{info.field_name}' не может быть длиннее 20 символов")
+            return v_clean
 
 
 
