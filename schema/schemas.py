@@ -1,31 +1,31 @@
 from pydantic import BaseModel, ConfigDict, field_validator
+from typing import Optional
 
-# 🔹 Входная модель (создание книги)
-class SBookAdd(BaseModel):
-        name: str
-        title: str = ""
-        description: str = ""
-
-        @field_validator("name")
-        @classmethod
-        def validate_name(cls, v: str, info):
-            v_clean = v.strip()
-            if not v_clean:
-                raise ValueError(f"Поле '{info.field_name}' не может быть пустым")
-            if len(v_clean) > 20:
-                raise ValueError(f"Поле '{info.field_name}' не может быть длиннее 20 символов")
-            return v_clean
-
-
-
-# 🔹 Модель для чтения книги
-class SBook(SBookAdd):
+# Модель для получения данных
+class SBook(BaseModel):
     id: int
-
+    name: Optional[str]
+    author: Optional[str]
+    description: Optional[str]
     model_config = ConfigDict(from_attributes=True)
 
+# Модель для обновления данных
+class SBookAdd(BaseModel):
+    name: Optional[str]
+    author: Optional[str]
+    description: Optional[str]
+    """
+    Проверяем что поле "name" не может быть пустым.
+    """
+    @field_validator("name")
+    @classmethod
+    def validate_name(cls, v):
+        if not v or not v.strip():
+            raise ValueError("Поле 'name' не может быть пустым")
+        return v
 
-# 🔹 Модель ответа с id (для POST/PUT/DELETE)
 class SBookId(BaseModel):
-    ok: bool
     book_id: int
+    name: Optional[str] | None
+    author: Optional[str] | None
+    description: Optional[str] | None

@@ -5,6 +5,15 @@ from sqlalchemy import select, update, delete
 class BookRepository:
 
     @classmethod
+    async def find_one(cls, book_id: int) -> SBook | None:
+        async with new_session() as session:
+            result = await session.execute(select(BooksOrm).where(BooksOrm.id == book_id))
+            book = result.scalar_one_or_none()
+            if book:
+                return SBook.model_validate(book)
+            return None
+
+    @classmethod
     async def add_one(cls, data: SBookAdd) -> int:
         async with new_session() as session:
             book_dict = data.model_dump()
@@ -22,15 +31,6 @@ class BookRepository:
             return [SBook.model_validate(book) for book in books]
 
     @classmethod
-    async def find_one(cls, book_id: int) -> SBook | None:
-        async with new_session() as session:
-            result = await session.execute(select(BooksOrm).where(BooksOrm.id == book_id))
-            book = result.scalar_one_or_none()
-            if book:
-                return SBook.model_validate(book)
-            return None
-
-    @classmethod
     async def update_one(cls, book_id: int, data: SBookAdd) -> bool:
         async with new_session() as session:
             stmt = (
@@ -41,7 +41,7 @@ class BookRepository:
             )
             result = await session.execute(stmt)
             await session.commit()
-            return result.rowcount > 0  # True если что-то обновилось
+            return result.rowcount > 0
 
     @classmethod
     async def delete_one(cls, book_id: int) -> bool:

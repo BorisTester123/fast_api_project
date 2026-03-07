@@ -15,7 +15,7 @@ class BooksOrm(Model):
 
         id : Mapped[int] = mapped_column(primary_key=True)
         name : Mapped[str]
-        title: Mapped[str]
+        author: Mapped[str]
         description : Mapped[str | None]
 
 
