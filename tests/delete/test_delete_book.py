@@ -33,7 +33,7 @@ async def test_delete_book_by_id():
 
         # 3️⃣ Удаляем книгу
         delete_response = await client.delete(f"/books/{book_id}")
-        assert delete_response.status_code == 204
+        assert delete_response.status_code == 200
 
         # 4️⃣ Проверяем, что GET теперь возвращает 404
         get_after_delete = await client.get(f"/books/{book_id}")
