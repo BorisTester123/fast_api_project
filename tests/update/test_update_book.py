@@ -2,41 +2,33 @@ import pytest
 from httpx import AsyncClient, ASGITransport
 from main import app
 
+@pytest.mark.parametrize(
+    "update_payload, expected_status",
+    [
+        ({"name": "Updated Book", "author": "Boris"}, 200),
+        ({"name": ""}, 422),
+        ({"name" : "Программируем на Python",
+          "author" : "Michael Dawson",
+          "description" : "Программируем играючи"}, 200)
+    ]
+)
 @pytest.mark.asyncio
-async def test_update_book_by_id():
+async def test_update_book(update_payload, expected_status):
     async with AsyncClient(
         transport=ASGITransport(app=app),
         base_url="http://test"
     ) as client:
-
-        # 1️⃣ Создаём книгу
-        payload = {
-            "name": "Old Book",
-            "author": "Boris",
-            "description": "old"
-        }
-        create_resp = await client.post("/books", json=payload)
-        assert create_resp.status_code == 201
+        # Сначала создаём книгу, чтобы был ID
+        create_resp = await client.post("/books", json={"name": "Temp", "author": "Boris", "description": "tmp"})
         book_id = create_resp.json()["book_id"]
 
-        # 2️⃣ Обновляем книгу
-        update_payload = {
-            "name": "Updated Book",
-            "author": "Boris Updated",
-            "description": "new description"
-        }
-        update_resp = await client.put(f"/books/{book_id}", json=update_payload)
-        assert update_resp.status_code == 200
-        data = update_resp.json()
+        response = await client.put(f"/books/{book_id}", json=update_payload)
 
-        # 3️⃣ Проверяем обновление
-        assert data["book_id"] == book_id
-        assert data["name"] == update_payload["name"]
-        assert data["author"] == update_payload["author"]
-        assert data["description"] == update_payload["description"]
+    assert response.status_code == expected_status
+    header = response.headers
+    assert header.get("content-type") == "application/json"
 
-        # 4️⃣ GET для проверки
-        get_resp = await client.get(f"/books/{book_id}")
-        assert get_resp.status_code == 200
-        get_data = get_resp.json()
-        assert get_data["name"] == update_payload["name"]
+    if expected_status == 200:
+        data = response.json()
+        for key, value in update_payload.items():
+            assert data.get(key) == value

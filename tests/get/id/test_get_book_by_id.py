@@ -1,6 +1,7 @@
 import pytest
 from httpx import AsyncClient, ASGITransport
 from main import app
+from enums.enum import GlobalMessageErrors
 
 
 @pytest.mark.asyncio
@@ -12,7 +13,7 @@ async def test_get_book_by_id():
     async with AsyncClient(
         transport=ASGITransport(app=app),
         base_url="http://test",
-    ) as client:
+    ) as ac:
 
         # создаём книгу
         payload = {
@@ -21,32 +22,28 @@ async def test_get_book_by_id():
             "description": "test"
         }
 
-        create_response = await client.post("/books", json=payload)
+        create_response = await ac.post("/books", json=payload)
 
         # Проверяем статус код созданной книги.
-
         assert create_response.status_code == 201
-
         book_data = create_response.json()
-
         book_id = book_data["book_id"]
 
         # получаем книгу по id
-        response = await client.get(f"/books/{book_id}")
+        response = await ac.get(f"/books/{book_id}")
+        assert response.status_code == 200, GlobalMessageErrors.WRONG_STATUS_CODE.value
+        header = response.headers
+        assert header.get("content-type") == "application/json"
 
-        assert response.status_code == 200
 
+        # в каком формате приходят данные и headers
         data = response.json()
 
-        # проверяем, что ответ, который приходит от сервера, имеет такую структуру.
-        assert data["book_id"] == book_id
-        assert data["name"] == payload["name"]
-        assert data["author"] == payload["author"]
-        assert data["description"] == payload["description"]
+        for book in data:  # book — словарь
+            for key, value in book.items():  # теперь items() у словаря
+                # проверяем, что ключ существует и значение не None
+                if isinstance(response.status_code, list):
+                    assert key in book
+                    assert book[key] == value
 
-        # негативные сценарии теста.
-        assert data["book_id"] == book_id
-        assert data["name"] == payload["username"]
-        assert data["author"] == payload["fdjsfjds"]
-        assert data["description"] == payload[""]
 

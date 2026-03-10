@@ -3,44 +3,26 @@ from httpx import AsyncClient, ASGITransport
 from main import app
 
 @pytest.mark.parametrize(
-    "payload, status_code",
+    "payload, expected_status",
     [
-        (
-            {
-                "name": "QA Book",
-                "author": "Boris",
-                "description": "test"
-            },
-            200
-        ),
-        (
-            {
-                "name": "",
-                "author": "Boris",
-                "description": "test"
-            },
-            422
-        ),
-        (
-            {
-                "author": "Boris",
-                "description": "test"
-            },
-            422
-        ),
+        ({"name": "QA Book", "author": "Boris", "description": "test"}, 201),
+        ({"name": "", "author": "Boris", "description": "test"}, 422),
+        ({"author": "Boris"}, 422),
     ]
 )
 @pytest.mark.asyncio
-async def test_create_book(payload, status_code):
-    """
-    Проверяем создание книги по ID через endpoint POST /books/{book_id}.
-    """
-
+async def test_create_book(payload, expected_status):
     async with AsyncClient(
         transport=ASGITransport(app=app),
-        base_url="http://test",
-    ) as client:
+        base_url="http://test"
+    ) as ac:
+        response = await ac.post("/books", json=payload)
 
-        response = await client.post("/books", json=payload)
+    assert response.status_code == expected_status
+    header = response.headers
+    assert header.get("content-type") == "application/json"
 
-    assert response.status_code == status_code
+    if expected_status == 201:
+        data = response.json()
+        for key, value in payload.items():
+            assert data.get(key) == value

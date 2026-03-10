@@ -13,7 +13,7 @@ class Model(DeclarativeBase):
 class BooksOrm(Model):
         __tablename__ = 'books'
 
-        id : Mapped[int] = mapped_column(primary_key=True)
+        id : Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
         name : Mapped[str]
         author: Mapped[str]
         description : Mapped[str | None]
