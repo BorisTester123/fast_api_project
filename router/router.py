@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Path
-from schema.schemas import SBookAdd, SBook, SBookId
-from repository.repository import BookRepository
+from schema.schemas import SBookAdd, SBook, SBookUpdate
+from repository.book_repository import BookRepository
 
 router = APIRouter(
     prefix="/books",
@@ -12,26 +12,23 @@ async def get_books() -> list[SBook]:
     return await BookRepository.find_all()
 
 @router.post("", summary='Создание новой книги', status_code=201)
-async def add_book(book: SBookAdd) -> SBookId:
-    book_id = await BookRepository.add_one(book)
+async def add_book(book: SBookAdd) -> SBook:
+    id_book = await BookRepository.add_one(book)
 
-    if not book_id:
-        raise HTTPException(status_code=404, detail="Книга не найдена")
-
-    return SBookId(
-        book_id=book_id,
+    return SBook(
+        id=id_book,
         name=book.name,
         author=book.author,
         description=book.description
     )
 
-@router.get("/{book_id}", response_model=SBookId, summary="Получение книги по ID")
+@router.get("/{book_id}", response_model=SBook, summary="Получение книги по ID")
 async def get_book(book_id: int):
     book = await BookRepository.find_one(book_id)
     if not book:
         raise HTTPException(status_code=404, detail="Книга не найдена")
-    return SBookId(
-        book_id=book.id,
+    return SBook(
+        id=book.id,
         name=book.name,
         author=book.author,
         description=book.description
@@ -39,14 +36,14 @@ async def get_book(book_id: int):
 
 
 @router.put("/{book_id}", summary="Изменение книги по ID")
-async def update_book(book_id: int, book: SBookAdd) -> SBookId:
+async def update_book(book_id: int, book: SBookAdd) -> SBookUpdate:
     updated = await BookRepository.update_one(book_id, book)
 
     if not updated:
         raise HTTPException(status_code=404, detail="Книга не найдена")
 
-    return SBookId(
-        book_id=book_id,
+    return SBookUpdate(
+        id=updated,
         name=book.name,
         author=book.author,
         description=book.description

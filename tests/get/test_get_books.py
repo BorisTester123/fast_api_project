@@ -29,6 +29,6 @@ async def test_get_books():
         for book in data:  # book — словарь
             for key, value in book.items():  # теперь items() у словаря
                 # проверяем, что ключ существует и значение не None
-                if isinstance(response.status_code, list):
+                if isinstance(response.status_code, int):
                     assert key in book
                     assert book[key] == value

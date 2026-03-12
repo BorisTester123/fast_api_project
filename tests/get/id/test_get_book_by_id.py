@@ -37,13 +37,11 @@ async def test_get_book_by_id():
 
 
         # в каком формате приходят данные и headers
+
         data = response.json()
 
-        for book in data:  # book — словарь
-            for key, value in book.items():  # теперь items() у словаря
-                # проверяем, что ключ существует и значение не None
-                if isinstance(response.status_code, list):
-                    assert key in book
-                    assert book[key] == value
+        for key, value in data.items():
+            assert key in data
+            assert data[key] == value
 
 

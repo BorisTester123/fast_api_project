@@ -25,4 +25,5 @@ async def test_create_book(payload, expected_status):
     if expected_status == 201:
         data = response.json()
         for key, value in payload.items():
-            assert data.get(key) == value
+            assert key in data
+            assert data[key] == value

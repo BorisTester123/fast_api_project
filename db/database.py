@@ -11,12 +11,12 @@ class Model(DeclarativeBase):
     pass
 
 class BooksOrm(Model):
-        __tablename__ = 'books'
+    __tablename__ = 'books'
 
-        id : Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-        name : Mapped[str]
-        author: Mapped[str]
-        description : Mapped[str | None]
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    name: Mapped[str]
+    author: Mapped[str | None]
+    description: Mapped[str | None]
 
 
 async def create_tables():
