@@ -1,22 +1,14 @@
 from fastapi import FastAPI
-
-from db.database import create_tables, delete_tables
-
 from contextlib import asynccontextmanager
+from db.database import create_tables, delete_tables
 from router.router import router as tasks_router
 
 @asynccontextmanager
-
 async def lifespan(app: FastAPI):
-    await delete_tables()
-    print("База очищена")
-    await create_tables()
-    print("База создана")
+    await delete_tables()   # очищаем (опционально)
+    await create_tables()   # создаём таблицы
     yield
-    print('Выключение')
-
+    print("Приложение выключается")
 
 app = FastAPI(lifespan=lifespan)
 app.include_router(tasks_router)
-
-

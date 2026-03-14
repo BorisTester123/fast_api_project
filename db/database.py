@@ -1,29 +1,29 @@
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+from sqlalchemy.orm import DeclarativeBase
+from configuration import settings
 
-engine = create_async_engine(
-    "sqlite+aiosqlite:///books.db"
+# Создаём асинхронный движок
+async_engine = create_async_engine(
+    settings.database_url_asyncpg,
+    echo=True
 )
 
-new_session = async_sessionmaker(engine, expire_on_commit=False)
+# Сессии
+async_session = async_sessionmaker(
+    bind=async_engine,
+    class_=AsyncSession,
+    expire_on_commit=False
+)
 
+# Базовый класс
 class Model(DeclarativeBase):
     pass
 
-class BooksOrm(Model):
-    __tablename__ = 'books'
-
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    name: Mapped[str]
-    author: Mapped[str | None]
-    description: Mapped[str | None]
-
-
+# Функции создания/удаления таблиц
 async def create_tables():
-    async with engine.connect() as conn:
+    async with async_engine.begin() as conn:
         await conn.run_sync(Model.metadata.create_all)
 
-
 async def delete_tables():
-    async with engine.connect() as conn:
+    async with async_engine.begin() as conn:
         await conn.run_sync(Model.metadata.drop_all)
