@@ -1,14 +1,42 @@
-from fastapi import FastAPI
 from contextlib import asynccontextmanager
+from fastapi import FastAPI
+from fastapi.openapi.utils import get_openapi
 from db.database import create_tables, delete_tables
-from router.router import router as tasks_router
+from router.router import router as books_router
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await delete_tables()   # очищаем (опционально)
-    await create_tables()   # создаём таблицы
+    await delete_tables()
+    await create_tables()
     yield
     print("Приложение выключается")
 
-app = FastAPI(lifespan=lifespan)
-app.include_router(tasks_router)
+
+def custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+
+    openapi_schema = get_openapi(
+        title="Books API",
+        version="1.0.0",
+        description="API для управления книгами",
+        routes=app.routes,
+    )
+
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+app = FastAPI(
+    title="Books API",
+    description="Простое API для управления книгами",
+    version="1.0.0",
+    lifespan=lifespan,
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json",
+)
+
+app.openapi = custom_openapi
+
+app.include_router(books_router)
