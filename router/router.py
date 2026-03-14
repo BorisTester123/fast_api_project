@@ -34,7 +34,6 @@ async def get_book(book_id: int):
         description=book.description
     )
 
-
 @router.put("/{book_id}", summary="Изменение книги по ID")
 async def update_book(book_id: int, book: SBookAdd) -> SBookUpdate:
     updated = await BookRepository.update_one(book_id, book)
@@ -48,7 +47,6 @@ async def update_book(book_id: int, book: SBookAdd) -> SBookUpdate:
         author=book.author,
         description=book.description
     )
-
 
 @router.delete(
     "/{book_id}",

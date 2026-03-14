@@ -8,6 +8,8 @@ __pycache__/
 .venv/
 env/
 venv/
+.env/
+configuration.py/
 
 # IDE files
 .idea/

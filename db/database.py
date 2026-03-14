@@ -5,7 +5,7 @@ from configuration import settings
 # Создаём асинхронный движок
 async_engine = create_async_engine(
     settings.database_url_asyncpg,
-    echo=True
+    echo=False
 )
 
 # Сессии
