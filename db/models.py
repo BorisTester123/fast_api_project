@@ -5,6 +5,6 @@ class BooksOrm(Model):
     __tablename__ = "books"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(nullable=False)
+    name: Mapped[str]
     author: Mapped[str | None]
     description: Mapped[str | None]

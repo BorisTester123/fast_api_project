@@ -15,7 +15,7 @@ async def get_books() -> list[SBook]:
         201: {"description": "Книга успешно создана"},
         422: {"description": "Не заполнены обязательные поля"},
     }, response_model=SBook)
-async def add_book(book: SBookAdd) -> SBook:
+async def create_book(book: SBookAdd) -> SBook:
     new_book = await BookRepository.add_one(book)
     return new_book
 
