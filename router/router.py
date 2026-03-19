@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Path
-from schema.schemas import SBookAdd, SBook
+from schema.schemas import SBookAdd, SBook, ErrorResponse
 from repository.book_repository import BookRepository
 
 router = APIRouter(
@@ -13,23 +13,25 @@ async def get_books() -> list[SBook]:
 
 @router.post("", summary='Создание новой книги', status_code=201, responses={
         201: {"description": "Книга успешно создана"},
-        422: {"description": "Не заполнены обязательные поля"},
+        422: {"description": "Не заполнены обязательные поля",
+              "model" : ErrorResponse},
     }, response_model=SBook)
 async def create_book(book: SBookAdd) -> SBook:
     new_book = await BookRepository.add_one(book)
     return new_book
 
-@router.get("/{book_id}", response_model=SBook, summary="Получение книги по ID")
+@router.get("/{book_id}", summary="Получение книги по ID")
 async def get_book(book_id: int) -> SBook:
     book = await BookRepository.find_one(book_id)
     if not book:
         raise HTTPException(status_code=404, detail="Книга не найдена")
     return book
 
-@router.put("/{book_id}", response_model=SBook, summary="Изменение книги по ID", responses={
+@router.put("/{book_id}",summary="Изменение книги по ID", responses={
         404: {"description": "Not found"},
-        422: {"description": "Не заполнены обязательные поля"},
-    })
+        422: {"description": "Не заполнены обязательные поля",
+          "model": ErrorResponse},
+    }, response_model=SBook)
 async def update_book(book_id: int, book: SBookAdd):
     updated_book = await BookRepository.update_one(book_id, book)
     if updated_book is None:

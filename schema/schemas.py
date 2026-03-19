@@ -11,3 +11,6 @@ class SBookAdd(BaseModel):
     name: str
     author: str | None = None
     description: str | None = None
+
+class ErrorResponse(BaseModel):
+    name: str
