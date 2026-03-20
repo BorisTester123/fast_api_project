@@ -2,63 +2,103 @@ from db.database import async_session
 from db.models import BooksOrm
 from schema.schemas import SBookAdd, SBook
 from sqlalchemy import select, update, delete
+from fastapi import HTTPException
 
 class BookRepository:
-
     @classmethod
+    # создание асинхронной функции, в которой передается в query params book_id
     async def find_one(cls, book_id: int) -> SBook | None:
+        # создаем новую сессию
         async with async_session() as session:
             async with session.begin():
+                # Если книга с таким id есть → вернёт объект Book
                 result = await session.execute(select(BooksOrm).where(BooksOrm.id == book_id))
                 book = result.scalar_one_or_none()
+                # если книга в базе данных есть.
             if book:
+                # возвращаем книгу и валидируем согласно нашей модели Pydantic
                 return SBook.model_validate(book)
+            # иначе возвращаем None
             return None
 
     @classmethod
-    async def add_one(cls, data: SBookAdd) -> SBook:
+    async def create(cls, data: SBookAdd) -> SBook:
+        # создаем новую сессию
         async with async_session() as session:
+            # контекстный менеджер транзакции
             async with session.begin():
+                # Проверяем, есть ли уже книга с таким названием
+                result = await session.execute(
+                    select(BooksOrm).where(BooksOrm.name == data.name)
+                )
+                # возьми единственный объект, если он есть, иначе None, но если их несколько — ошибка.
+                existing_book = result.scalar_one_or_none()
+                #  если такая книга с таким названием уже есть
+                if existing_book:
+                    # добавляем описание ошибки
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"Книга с названием '{data.name}' уже существует"
+                    )
+
+                # Если книги с таким названием нет — создаём новую
                 book_dict = data.model_dump()
                 book = BooksOrm(**book_dict)
+                # добавляем книгу в базу данных
                 session.add(book)
+                # Отправь все изменения в базу данных
                 await session.flush()
-                await session.refresh(book)  # ← загружает все актуальные значения из БД
+                await session.refresh(book)  # загружает актуальные значения из БД
+                # возвращаем книгу согласно нашей модели
                 return SBook.model_validate(book)
 
     @classmethod
     async def find_all(cls) -> list[SBook]:
+        # создаем сессию.
         async with async_session() as session:
+            # контекстный менеджер транзакции, выполняет все команды, если ошибка rollback, иначе commit
             async with session.begin():
+                # отправляем запрос в базу данных, ищем наши книги
                 result = await session.execute(select(BooksOrm))
+                # все книги найдены
                 books = result.scalars().all()
+                # валидируем все полученные книги из базы данных согласно нашей модели
                 return [SBook.model_validate(book) for book in books]
 
     @classmethod
     async def update_one(cls, book_id: int, data: SBookAdd) -> SBook | None:
+        # создаем новую сессию
         async with async_session() as session:
+            # обновляем книгу по id в нашей таблице books, и возвращаем обновленный словарь нашей книги, и его обновленные значения
             async with session.begin():
                 stmt = (
                     update(BooksOrm)
                     .where(BooksOrm.id == book_id)
                     .values(**data.model_dump())
+                    .returning(BooksOrm)
                 )
+                # отправь запрос в базу данных
                 result = await session.execute(stmt)
 
-                if result.rowcount == 0:
-                    return None
-                # После обновления загружаем свежую версию
-                refreshed = await session.get(BooksOrm, book_id)
-                if refreshed:
-                    await session.refresh(refreshed)  # на всякий случай
-                    return SBook.model_validate(refreshed)
+                updated_book = result.scalar_one_or_none()  # вернёт объект или None
+                await session.commit()
 
-                return None
+                if updated_book is None:
+                    return None
+
+                return SBook.model_validate(updated_book)
 
     @classmethod
-    async def delete_one(cls, book_id: int) -> bool:
+    async def delete_one(cls, book_id: int) -> SBook | None:
         async with async_session() as session:
             async with session.begin():
-                stmt = delete(BooksOrm).where(BooksOrm.id == book_id)
-                result = await session.execute(stmt)
-                return result.rowcount > 0
+                # Получаем объект книги
+                result = await session.execute(select(BooksOrm).where(BooksOrm.id == book_id))
+                book = result.scalar_one_or_none()
+                if not book:
+                    return None
+
+                # Удаляем книгу
+                await session.execute(delete(BooksOrm).where(BooksOrm.id == book_id))
+                await session.commit()
+                return SBook.model_validate(book)

@@ -27,6 +27,7 @@ def custom_openapi():
     app.openapi_schema = openapi_schema
     return app.openapi_schema
 
+# Инициализация FastAPI приложения
 app = FastAPI(
     title="Books API",
     description="Простое API для управления книгами",
@@ -38,5 +39,5 @@ app = FastAPI(
 )
 
 app.openapi = custom_openapi
-
+# Подключаем роутер для операций с префиксом books
 app.include_router(books_router)
