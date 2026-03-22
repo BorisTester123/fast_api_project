@@ -16,3 +16,6 @@ class SBookAdd(BaseModel):
 
 class ErrorResponse(BaseModel):
     name: str = Field(..., examples=["Поле name обязательно для заполнения"])
+
+class ErrorMessage(BaseModel):
+    detail: str = Field(None, examples=["Unauthorized"])
