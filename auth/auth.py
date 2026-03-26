@@ -1,44 +1,28 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
-import bcrypt
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-
-from db.database import async_session
+from db.authorization import get_db
 from db.models import User
-
+from utils.util import verify_password
 
 security = HTTPBasic()
 
-
 async def check_auth(
-    credentials: HTTPBasicCredentials = Depends(security)) -> str:
+    credentials: HTTPBasicCredentials = Depends(security),
+    db: AsyncSession = Depends(get_db)
+) -> User:
     """
-    Проверяет Basic Auth по данным из базы.
-    Возвращает username, если авторизация прошла успешно.
+    Проверяет логин и пароль.
+    Возвращает объект пользователя, если успешно.
     """
-    async with async_session() as db:
-        # Ищем пользователя по username
-        result = await db.execute(
-            select(User).where(User.username == credentials.username)
+    result = await db.execute(select(User).where(User.username == credentials.username))
+    user = result.scalar_one_or_none()
+
+    if not user or not verify_password(credentials.password, user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Неверный логин или пароль",
+            headers={"WWW-Authenticate": "Basic"},
         )
-        user = result.scalar_one_or_none()
-
-        if not user:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Неверный логин или пароль",
-                headers={"WWW-Authenticate": "Basic"},
-            )
-
-        # Проверяем пароль с помощью bcrypt
-        if not bcrypt.checkpw(
-            credentials.password[:72].encode("utf-8"),
-            user.password_hash.encode("utf-8")
-        ):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Неверный логин или пароль",
-                headers={"WWW-Authenticate": "Basic"},
-            )
-
-        return credentials.username   # или можно возвращать весь user, если понадобится
+    return user

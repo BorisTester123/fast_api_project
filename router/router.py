@@ -43,14 +43,13 @@ async def get_books() -> list[SBook]:
             },
             response_model=SBook,
             dependencies=[Depends(check_auth)])
-
 async def create_book(book: SBookAdd) -> SBook:
     # Создаем новую книгу и отправляем данные о книге в базу данных
     book = await BookRepository.create(book)
     # Возвращаем созданную книгу
     return book
 
-@router.get("/{book_id}", summary="Получение книги по ID",
+@router.get("/{id}", summary="Получение книги по ID",
             responses={
                 401:
                     {

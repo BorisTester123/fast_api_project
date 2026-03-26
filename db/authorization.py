@@ -28,7 +28,7 @@ async def create(user: UserCreate, db: AsyncSession = Depends(get_db)):
     # если есть, хэшируем пароль.
     hashed_password = hash_password(user.password)
     # указываем какое поле будет захэшировано.
-    new_user = User(username=user.username, hashed_password=hashed_password)
+    new_user = User(username=user.username, password_hash=hashed_password)
     # добавляем креды для авторизации в swagger, уже захэшированные данные.
     db.add(new_user)
     await db.commit()

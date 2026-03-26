@@ -8,6 +8,6 @@ def hash_password(password: str) -> str:
     return hashed.decode("utf-8")
 
 # верифицируем хэшированный пароль
-def verify_password(plain_password: str, hashed_password: str) -> bool:
+def verify_password(plain_password: str, password_hash: str) -> bool:
     safe_password = plain_password[:72].encode("utf-8")
-    return bcrypt.checkpw(safe_password, hashed_password.encode("utf-8"))
+    return bcrypt.checkpw(safe_password, password_hash.encode("utf-8"))
