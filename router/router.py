@@ -1,7 +1,11 @@
+# Импортируем класс APIRouter для создания API endpoints
 from fastapi import APIRouter, HTTPException, Depends
+# Импортируем модель данных для работы с книгами
 from schema.schemas import SBookAdd, SBook, ErrorResponse, ErrorMessage
+# Импортируем репозиторий для работы с книгами
 from repository.book_repository import BookRepository
-from auth.authorization import verify_credentials
+# Импортируем из файла авторизации функцию check auth.
+from auth.auth import check_auth
 
 # Создаем роутер для группировки endpoints связанных с операциями
 router = APIRouter(
@@ -14,13 +18,12 @@ router = APIRouter(
             responses={
                 401:
                     {
-                        "description": "Неверная авторизация",
-                        "model": ErrorMessage,
+                       "description" : "Неверная авторизация",
+                       "model" : ErrorMessage,
                     },
             },
             response_model=list[SBook],
-            dependencies=[Depends(verify_credentials)])
-
+            dependencies=[Depends(check_auth)])
 # Асинхронная функция для получения списка книг
 async def get_books() -> list[SBook]:
     # возвращаем из репозитория все книги из базы данных
@@ -28,35 +31,35 @@ async def get_books() -> list[SBook]:
 
 @router.post("", summary='Создание новой книги', status_code=201,
              responses={
-                 422:
-                     {
-                         "description": "Не заполнены обязательные поля",
-                         "model": ErrorResponse
+                    422: {
+                      "description": "Не заполнены обязательные поля",
+                      "model": ErrorResponse
+                },
+                    401:
+                    {
+                       "description" : "Неверная авторизация",
+                       "model" : ErrorMessage,
                     },
-                 401:
-                     {
-                         "description": "Неверная авторизация",
-                         "model": ErrorMessage,
-                     },
-             },
-             response_model=SBook,
-             dependencies=[Depends(verify_credentials)])
+            },
+            response_model=SBook,
+            dependencies=[Depends(check_auth)])
+
 async def create_book(book: SBookAdd) -> SBook:
     # Создаем новую книгу и отправляем данные о книге в базу данных
     book = await BookRepository.create(book)
     # Возвращаем созданную книгу
     return book
 
-@router.get("/{id}", summary="Получение книги по ID",
+@router.get("/{book_id}", summary="Получение книги по ID",
             responses={
                 401:
                     {
-                        "description": "Неверная авторизация",
-                        "model": ErrorMessage,
+                        "description" : "Неверная авторизация",
+                        "model" : ErrorMessage,
                     },
             },
             response_model=SBook,
-            dependencies=[Depends(verify_credentials)])
+            dependencies=[Depends(check_auth)])
 async def get_book(book_id: int) -> SBook:
     # ищем книгу по ID в базе данных
     book = await BookRepository.find_one(book_id)
@@ -66,21 +69,21 @@ async def get_book(book_id: int) -> SBook:
         raise HTTPException(status_code=404, detail="Книга не найдена")
     return book
 
-@router.put("/{id}",summary="Изменение книги по ID",
+@router.put("/{book_id}",summary="Изменение книги по ID",
             responses={
                 422:
                     {
-                        "description": "Не заполнены обязательные поля",
-                        "model": ErrorResponse
-                    },
+                      "description": "Не заполнены обязательные поля",
+                      "model": ErrorResponse,
+            },
                 401:
                     {
-                        "description": "Неверная авторизация",
-                        "model": ErrorMessage,
+                      "description" : "Неверная авторизация",
+                      "model" : ErrorMessage,
                     },
             },
-            response_model = SBook,
-            dependencies = [Depends(verify_credentials)])
+            response_model=SBook,
+            dependencies=[Depends(check_auth)])
 async def update_book(book_id: int, book: SBookAdd):
     # Отправляем запрос в базу данных на обновление книги
     updated_book = await BookRepository.update_one(book_id, book)
@@ -91,7 +94,7 @@ async def update_book(book_id: int, book: SBookAdd):
     # Иначе обновляем книгу в базе данных
     return updated_book
 
-@router.delete("/{id}", summary="Удаление книги по ID",
+@router.delete("/{book_id}", summary="Удаление книги по ID",
                responses={
                    422:
                        {
@@ -100,12 +103,12 @@ async def update_book(book_id: int, book: SBookAdd):
                        },
                    401:
                        {
-                           "description": "Неверная авторизация",
-                           "model": ErrorMessage,
+                           "description" : "Неверная авторизация",
+                           "model" : ErrorMessage,
                        },
                },
                response_model=SBook,
-               dependencies=[Depends(verify_credentials)])
+               dependencies=[Depends(check_auth)])
 async def delete_book(book_id: int) -> SBook:
     # ищем книгу в базе данных
     book = await BookRepository.find_one(book_id)
