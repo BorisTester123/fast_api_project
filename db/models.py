@@ -14,3 +14,11 @@ class BooksOrm(Model):
     author: Mapped[str | None]
     # Описание книги
     description: Mapped[str | None]
+
+# создаем новую таблицу, в которой будут храниться креды для авторизации в Swagger
+class User(Model):
+    __tablename__ = "users"
+
+    id : Mapped[int] = mapped_column(autoincrement=True, primary_key=True)
+    username: Mapped[str]
+    password_hash : Mapped[str] = mapped_column(nullable=False )

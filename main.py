@@ -7,7 +7,7 @@ from router.router import router as books_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await delete_tables()
+    # await delete_tables()
     await create_tables()
     yield
     print("Приложение выключается")
