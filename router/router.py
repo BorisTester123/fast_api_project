@@ -69,7 +69,7 @@ async def get_book(book_id: int) -> SBook:
         raise HTTPException(status_code=404, detail="Книга не найдена")
     return book
 
-@router.put("/{book_id}",summary="Изменение книги по ID",
+@router.put("/{id}",summary="Изменение книги по ID",
             responses={
                 422:
                     {
@@ -94,7 +94,7 @@ async def update_book(book_id: int, book: SBookAdd):
     # Иначе обновляем книгу в базе данных
     return updated_book
 
-@router.delete("/{book_id}", summary="Удаление книги по ID",
+@router.delete("/{id}", summary="Удаление книги по ID",
                responses={
                    422:
                        {
