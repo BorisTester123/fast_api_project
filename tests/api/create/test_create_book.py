@@ -5,6 +5,7 @@ from BasicAuth.authorization import get_db
 from db.database import async_session
 import os
 from dotenv import load_dotenv
+from requests.auth import HTTPBasicAuth
 
 # Используем креды для авторизации из .env файла
 load_dotenv()
@@ -33,9 +34,9 @@ def client():
 @pytest.mark.parametrize(
     "payload, expected_status",
     [
-        ({"name": "123321", "author": "Boris", "description": "test"}, 201),   # success
+        ({"name": "developer Python", "author": "Boris", "description": "test"}, 201),   # success
         ({"name": "", "author": "Boris", "description": "test"}, 422),    # empty name → 422
-        ({"author": "Boris", "description": "test"}, 422),                # 400 поле name обязательно для заполнения
+        ({"author": "Boris", "description": "test"}, 400),                # 400 поле name обязательно для заполнения
     ],
 )
 
@@ -43,7 +44,8 @@ def client():
 def test_create_book(client, payload, expected_status):
     # делаем копию
     test_payload = payload.copy()
-    response = client.post("/books", json=test_payload)
+    auth = HTTPBasicAuth(USERNAME, PASSWORD)
+    response = client.post("/books", json=test_payload, auth=auth)
 
     assert response.status_code == expected_status, \
         f"Ожидали {expected_status}, получили {response.status_code}. Payload: {test_payload}"
