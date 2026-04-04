@@ -4,11 +4,11 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Settings(BaseSettings):
-    DB_HOST: str = "Используйте свои данные для подключения"
-    DB_PORT: int = "Используйте свои данные для подключения"
-    DB_USER: str = "Используйте свои данные для подключения"
-    DB_PASS: str = "Используйте свои данные для подключения"
-    DB_NAME: str = "Используйте свои данные для подключения"
+    DB_HOST: str = "Имя хоста"
+    DB_PORT: int = "Порт"
+    DB_USER: str = "User"
+    DB_PASS: str = "Пароль"
+    DB_NAME: str = "Имя базы"
 
     @property
     def database_url_asyncpg(self) -> str:

@@ -15,7 +15,7 @@ class BooksOrm(Model):
     # Описание книги
     description: Mapped[str | None]
 
-# создаем новую таблицу, в которой будут храниться креды для авторизации в Swagger
+# создаем таблицу для хранения кредов для авторизации и работы с CRUD операциями
 class User(Model):
     __tablename__ = "users"
 

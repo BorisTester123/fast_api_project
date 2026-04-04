@@ -7,7 +7,7 @@ from router.router import router as books_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # await delete_tables()
+    await delete_tables()
     await create_tables()
     yield
     print("Приложение выключается")
@@ -23,7 +23,6 @@ def custom_openapi():
         description="API для управления книгами",
         routes=app.routes,
     )
-
     app.openapi_schema = openapi_schema
     return app.openapi_schema
 

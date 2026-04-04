@@ -1,21 +1,23 @@
 from pydantic import BaseModel, ConfigDict, Field
+from typing import Optional
 
-# Класс для валидации полей в API
-class SBook(BaseModel):
-    id: int = Field(examples=["1"])
+class BookCreate(BaseModel):
+    name: str = Field(..., min_length=1, max_length=130)
+    author: Optional[str] = Field(None, max_length=130)
+    description: Optional[str] = Field(None, max_length=130)
+
+# Модель для описания Response.
+class BookResponse(BaseModel):
+    id: int = Field(..., examples=["1"])
     name: str = Field(..., examples=["Война и мир"])
     author: str = Field(None, examples=["Лев Толстой"])
-    description: str = Field(None,
+    description: str = Field(
     examples=["«Война и мир» — роман Льва Толстого, написанный в 1863–1869 годах. Жанр — роман-эпопея."])
     model_config = ConfigDict(from_attributes=True)
 
-class SBookAdd(BaseModel):
-    name: str
-    author: str = Field(None, max_length=130)
-    description: str = Field(None, max_length=130)
-
+# Описание моделей для разных статусов кодов.
 class ErrorResponse(BaseModel):
     name: str = Field(..., examples=["Поле name обязательно для заполнения"])
 
 class ErrorMessage(BaseModel):
-    detail: str = Field(None, examples=["Unauthorized"])
+    detail: str = Field(..., examples=["Unauthorized"])

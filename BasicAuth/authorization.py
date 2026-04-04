@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from schema.user import UserCreate, UserRead
+from schema.user_create import UserCreate, UserRead
 from utils.util import hash_password
 from sqlalchemy import select
 from db.database import async_session
@@ -35,4 +35,3 @@ async def create(user: UserCreate, db: AsyncSession = Depends(get_db)):
     await db.refresh(new_user)
 
     return UserRead(id=new_user.id, username=new_user.username)
-

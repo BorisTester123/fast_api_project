@@ -1,13 +1,13 @@
 from db.database import async_session
 from db.models import BooksOrm
-from schema.schemas import SBookAdd, SBook
+from schema.schemas import BookResponse, BookCreate
 from sqlalchemy import select, update, delete
 from fastapi import HTTPException
 
 class BookRepository:
     @classmethod
     # создание асинхронной функции, в которой передается в query params book_id
-    async def find_one(cls, book_id: int) -> SBook | None:
+    async def find_one(cls, book_id: int) -> BookResponse | None:
         # создаем новую сессию
         async with async_session() as session:
             async with session.begin():
@@ -17,12 +17,12 @@ class BookRepository:
                 # если книга в базе данных есть.
             if book:
                 # возвращаем книгу и валидируем согласно нашей модели Pydantic
-                return SBook.model_validate(book)
+                return BookResponse.model_validate(book)
             # иначе возвращаем None
             return None
 
     @classmethod
-    async def create(cls, data: SBookAdd) -> SBook:
+    async def create(cls, data: BookCreate) -> BookResponse:
         # создаем новую сессию
         async with async_session() as session:
             # контекстный менеджер транзакции
@@ -50,10 +50,10 @@ class BookRepository:
                 await session.flush()
                 await session.refresh(book)  # загружает актуальные значения из БД
                 # возвращаем книгу согласно нашей модели
-                return SBook.model_validate(book)
+                return BookResponse.model_validate(book)
 
     @classmethod
-    async def find_all(cls) -> list[SBook]:
+    async def find_all(cls) -> list[BookResponse]:
         # создаем сессию.
         async with async_session() as session:
             # контекстный менеджер транзакции, выполняет все команды, если ошибка rollback, иначе commit
@@ -63,10 +63,10 @@ class BookRepository:
                 # все книги найдены
                 books = result.scalars().all()
                 # валидируем все полученные книги из базы данных согласно нашей модели
-                return [SBook.model_validate(book) for book in books]
+                return [BookResponse.model_validate(book) for book in books]
 
     @classmethod
-    async def update_one(cls, book_id: int, data: SBookAdd) -> SBook | None:
+    async def update_one(cls, book_id: int, data: BookCreate) -> BookResponse | None:
         # создаем новую сессию
         async with async_session() as session:
             # обновляем книгу по id в нашей таблице books, и возвращаем обновленный словарь нашей книги, и его обновленные значения
@@ -86,10 +86,10 @@ class BookRepository:
                 if updated_book is None:
                     return None
 
-                return SBook.model_validate(updated_book)
+                return BookResponse.model_validate(updated_book)
 
     @classmethod
-    async def delete_one(cls, book_id: int) -> SBook | None:
+    async def delete_one(cls, book_id: int) -> BookResponse | None:
         async with async_session() as session:
             async with session.begin():
                 # Получаем объект книги
@@ -101,4 +101,4 @@ class BookRepository:
                 # Удаляем книгу
                 await session.execute(delete(BooksOrm).where(BooksOrm.id == book_id))
                 await session.commit()
-                return SBook.model_validate(book)
+                return BookResponse.model_validate(book)

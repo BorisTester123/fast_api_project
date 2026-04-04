@@ -2,9 +2,9 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from db.authorization import get_db
 from db.models import User
 from utils.util import verify_password
+from BasicAuth.authorization import get_db
 
 security = HTTPBasic()
 
@@ -13,8 +13,8 @@ async def check_auth(
     db: AsyncSession = Depends(get_db)
 ) -> User:
     """
-    Проверяет логин и пароль.
-    Возвращает объект пользователя, если успешно.
+    Проверяем креды для авторизации в Swagger.
+    Если совпадают, успешно авторизуется.
     """
     result = await db.execute(select(User).where(User.username == credentials.username))
     user = result.scalar_one_or_none()

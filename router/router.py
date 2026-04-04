@@ -1,11 +1,11 @@
 # Импортируем класс APIRouter для создания API endpoints
 from fastapi import APIRouter, HTTPException, Depends
 # Импортируем модель данных для работы с книгами
-from schema.schemas import SBookAdd, SBook, ErrorResponse, ErrorMessage
+from schema.schemas import BookResponse, BookCreate, ErrorResponse, ErrorMessage
 # Импортируем репозиторий для работы с книгами
 from repository.book_repository import BookRepository
-# Импортируем из файла авторизации функцию check auth.
-from auth.auth import check_auth
+# Импортируем из файла авторизации функцию check BasicAuth.
+from BasicAuth.check_authorization import check_auth
 
 # Создаем роутер для группировки endpoints связанных с операциями
 router = APIRouter(
@@ -18,14 +18,14 @@ router = APIRouter(
             responses={
                 401:
                     {
-                       "description" : "Неверная авторизация",
+                       "description" : "Не авторизован",
                        "model" : ErrorMessage,
                     },
             },
-            response_model=list[SBook],
+            response_model=list[BookResponse],
             dependencies=[Depends(check_auth)])
 # Асинхронная функция для получения списка книг
-async def get_books() -> list[SBook]:
+async def get_books():
     # возвращаем из репозитория все книги из базы данных
     return await BookRepository.find_all()
 
@@ -37,13 +37,13 @@ async def get_books() -> list[SBook]:
                 },
                     401:
                     {
-                       "description" : "Неверная авторизация",
+                       "description" : "Не авторизован",
                        "model" : ErrorMessage,
                     },
             },
-            response_model=SBook,
+            response_model=BookResponse,
             dependencies=[Depends(check_auth)])
-async def create_book(book: SBookAdd) -> SBook:
+async def create_book(book: BookCreate):
     # Создаем новую книгу и отправляем данные о книге в базу данных
     book = await BookRepository.create(book)
     # Возвращаем созданную книгу
@@ -53,13 +53,13 @@ async def create_book(book: SBookAdd) -> SBook:
             responses={
                 401:
                     {
-                        "description" : "Неверная авторизация",
+                        "description" : "Не авторизован",
                         "model" : ErrorMessage,
                     },
             },
-            response_model=SBook,
+            response_model=BookResponse,
             dependencies=[Depends(check_auth)])
-async def get_book(book_id: int) -> SBook:
+async def get_book(book_id: int):
     # ищем книгу по ID в базе данных
     book = await BookRepository.find_one(book_id)
     # Проверяем если книги в базе нет
@@ -77,13 +77,13 @@ async def get_book(book_id: int) -> SBook:
             },
                 401:
                     {
-                      "description" : "Неверная авторизация",
+                      "description" : "Не авторизован",
                       "model" : ErrorMessage,
                     },
             },
-            response_model=SBook,
+            response_model=BookResponse,
             dependencies=[Depends(check_auth)])
-async def update_book(book_id: int, book: SBookAdd):
+async def update_book(book_id: int, book: BookCreate):
     # Отправляем запрос в базу данных на обновление книги
     updated_book = await BookRepository.update_one(book_id, book)
     # Если книги в базе данных нет
@@ -102,13 +102,13 @@ async def update_book(book_id: int, book: SBookAdd):
                        },
                    401:
                        {
-                           "description" : "Неверная авторизация",
+                           "description" : "Не авторизован",
                            "model" : ErrorMessage,
                        },
                },
-               response_model=SBook,
+               response_model=BookResponse,
                dependencies=[Depends(check_auth)])
-async def delete_book(book_id: int) -> SBook:
+async def delete_book(book_id: int):
     # ищем книгу в базе данных
     book = await BookRepository.find_one(book_id)
     # если книги в базе данных нет
