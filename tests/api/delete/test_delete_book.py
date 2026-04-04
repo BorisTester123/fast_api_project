@@ -5,6 +5,7 @@ from BasicAuth.authorization import get_db
 from db.database import async_session
 import os
 from dotenv import load_dotenv
+from enums.enum import GlobalMessageErrors
 
 # Используем креды для авторизации из .env файла
 load_dotenv()
@@ -33,26 +34,39 @@ def client():
 @pytest.mark.parametrize(
     "payload, expected_status",
     [
-        ({"name": "developer Python", "author": "Boris", "description": "test"}, 201),   # success
-        ({"name": "", "author": "Boris", "description": "test"}, 422),    # empty name → 422
-        ({"author": "Boris", "description": "test"}, 400),                # 400 поле name обязательно для заполнения
+        ({"name": "Программируем на Python",
+          "author": "Michael D",
+          "description": "Обучение языку программирования"
+          },
+            201
+        ),   # success
     ],
 )
 
 # функция принимает себя фикстуру и асинхронного клиента
-def test_create_book(client, payload, expected_status):
-    # делаем копию
-    test_payload = payload.copy()
-    response = client.post("/books", json=test_payload, auth=auth)
+def test_get_by_id_book(client, payload, expected_status):
+    # создаем нашу книгу POST /books
+    create_response = client.post("/books", json=payload)
+    # получаем Response от сервера
+    book_data = create_response.json()
+    # в Response ищем поле id
+    book_id = book_data["id"]
+
+    # отправляем запрос на получение книги по id
+    response = client.delete(f"/books/{book_id}")
+    # проверяем что статус код == 200 или опрокидываем ошибку из Enums.
+    assert response.status_code == 200, GlobalMessageErrors.WRONG_STATUS_CODE.value
+    header = response.headers
+    assert header.get("content-type") == "application/json"
 
     assert response.status_code == expected_status, \
-        f"Ожидали {expected_status}, получили {response.status_code}. Payload: {test_payload}"
+        f"Ожидали {expected_status}, получили {response.status_code}. Payload: {payload}"
 
-    # если наш статус код == 201, проходимся по нашему JSON (ключ - значение) в payload
+    # если наш статус код == 200, проходимся по нашему JSON (ключ - значение) в payload
     # и проверяем (assert) содержится ли ключ в нашем json
     # в нашем словаре ищем ключ и == нашему значению
-    if expected_status == 201:
+    if expected_status == 200:
         data = response.json()
-        for key, value in payload.items():
+        for key, value in data.items():
             assert key in data
             assert data[key] == value
