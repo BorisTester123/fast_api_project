@@ -16,7 +16,7 @@ async def get_db():
     async with async_session() as session:
         yield session
 
-# Создаем ручку для создания и чтения моделей UserCreate, UserRead.
+# Создаем ручку для генерации юзера и password_hash.
 @router.post("", response_model=UserRead)
 async def create(user: UserCreate, db: AsyncSession = Depends(get_db)):
     # передаем в нашу функцию сессию, и создаем юзера, проверяем что такой username существует в базе

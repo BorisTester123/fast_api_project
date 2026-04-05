@@ -12,17 +12,17 @@ async def check_auth(
     credentials: HTTPBasicCredentials = Depends(security),
     db: AsyncSession = Depends(get_db)
 ) -> User:
-    """
-    Проверяем креды для авторизации в Swagger.
-    Если совпадают, успешно авторизуется.
-    """
-    result = await db.execute(select(User).where(User.username == credentials.username))
-    user = result.scalar_one_or_none()
+    result = await db.execute(
+        select(User).where(User.username == credentials.username)
+    )
 
-    if not user or not verify_password(credentials.password, user.password_hash):
+    user: User | None = result.scalar_one_or_none()
+
+    if user is None or not verify_password(credentials.password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Неверный логин или пароль",
             headers={"WWW-Authenticate": "Basic"},
         )
+
     return user
