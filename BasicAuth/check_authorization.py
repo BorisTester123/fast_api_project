@@ -8,6 +8,7 @@ from BasicAuth.authorization import get_db
 
 security = HTTPBasic()
 
+# Функция для проверки наших кредов авторизации
 async def check_auth(
     credentials: HTTPBasicCredentials = Depends(security),
     db: AsyncSession = Depends(get_db)
