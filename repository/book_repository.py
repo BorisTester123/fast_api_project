@@ -50,7 +50,7 @@ class BookRepository:
 
     @classmethod
     # создание асинхронной функции, в которой передается в query params book_id
-    async def find_one(cls, book_id: int) -> BookResponse | None:
+    async def find_one(cls, book_id: int) -> BookResponse:
         # создаем новую сессию
         async with async_session() as session:
             async with session.begin():
@@ -60,11 +60,11 @@ class BookRepository:
                 )
                 book = result.scalar_one_or_none()
                 # если книга в базе данных есть.
-            if book:
-                # возвращаем книгу и валидируем согласно нашей модели Pydantic
-                return BookResponse.model_validate(book)
-            # иначе возвращаем None
-            return None
+        if not book:
+            # если в базе данных такой книги нет, кидаем ошибку
+            raise HTTPException(404, detail="Книга не найдена")
+        # иначе валидируем модель
+        return BookResponse.model_validate(book)
 
     @classmethod
     async def update_one(cls, book_id: int, data: BookCreate) -> BookResponse | None:

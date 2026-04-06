@@ -1,8 +1,12 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
-from db.database import create_tables, delete_tables
+from db.database import create_tables
 from router.router import router as books_router
+from router.router_auth import router as login_router
+from fastapi.templating import Jinja2Templates
+
+templates = Jinja2Templates(directory="templates")
 
 
 @asynccontextmanager
@@ -40,3 +44,4 @@ app = FastAPI(
 app.openapi = custom_openapi
 # Подключаем роутер для операций с префиксом books
 app.include_router(books_router)
+app.include_router(login_router)

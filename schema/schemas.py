@@ -2,7 +2,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from typing import Optional
 
 class BookCreate(BaseModel):
-    name: str = Field(..., min_length=1, max_length=130)
+    name: str = Field(..., max_length=130)
     author: Optional[str] = Field(None, max_length=130)
     description: Optional[str] = Field(None, max_length=130)
 

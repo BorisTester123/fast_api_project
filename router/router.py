@@ -43,13 +43,11 @@ async def get_books():
             },
             response_model=BookResponse,
             dependencies=[Depends(check_auth)])
-async def create_book(book: BookCreate):
-    # Создаем новую книгу и отправляем данные о книге в базу данных
-    book = await BookRepository.create(book)
-    # Возвращаем созданную книгу
-    return book
+async def create_book(book: BookCreate) -> BookResponse:
+    return await BookRepository.create(book)
 
-@router.get("/{id}", summary="Получение книги по ID",
+
+@router.get("/{book_id}", summary="Получение книги по ID",
             responses={
                 401:
                     {
@@ -68,7 +66,7 @@ async def get_book(book_id: int):
         raise HTTPException(status_code=404, detail="Книга не найдена")
     return book
 
-@router.put("/{id}",summary="Изменение книги по ID",
+@router.put("/{book_id}",summary="Изменение книги по ID",
             responses={
                 422:
                     {
@@ -93,7 +91,7 @@ async def update_book(book_id: int, book: BookCreate):
     # Иначе обновляем книгу в базе данных
     return updated_book
 
-@router.delete("/{id}", summary="Удаление книги по ID",
+@router.delete("/{book_id}", summary="Удаление книги по ID",
                responses={
                    422:
                        {

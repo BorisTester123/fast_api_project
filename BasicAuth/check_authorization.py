@@ -2,9 +2,9 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from db.models import User
+from db.user import User
 from utils.util import verify_password
-from BasicAuth.authorization import get_db
+from router.router_auth import get_db
 
 security = HTTPBasic()
 
