@@ -1,5 +1,5 @@
 from db.database import async_session
-from db.models import BooksOrm
+from db.models import Books
 from schema.schemas import BookResponse, BookCreate
 from sqlalchemy import select, update, delete
 from fastapi import HTTPException
@@ -12,7 +12,7 @@ class BookRepository:
             # контекстный менеджер транзакции, выполняет все команды, если ошибка rollback, иначе commit
             async with session.begin():
                 # отправляем запрос в базу данных, ищем наши книги
-                result = await session.execute(select(BooksOrm))
+                result = await session.execute(select(Books))
                 # все книги найдены
                 books = result.scalars().all()
                 # валидируем все полученные книги из базы данных согласно нашей модели
@@ -26,7 +26,7 @@ class BookRepository:
             async with session.begin():
                 # Проверяем, есть ли уже книга с таким названием
                 result = await session.execute(
-                    select(BooksOrm).where(BooksOrm.name == data.name)
+                    select(Books).where(Books.name == data.name)
                 )
                 # возьми единственный объект, если он есть, иначе None, но если их несколько — ошибка.
                 existing_book = result.scalar_one_or_none()
@@ -39,7 +39,7 @@ class BookRepository:
                     )
 
                 # Если книги с таким названием нет — создаём новую
-                book = BooksOrm(**data.model_dump())
+                book = Books(**data.model_dump())
                 # добавляем книгу в базу данных
                 session.add(book)
                 # Отправь все изменения в базу данных
@@ -56,7 +56,7 @@ class BookRepository:
             async with session.begin():
                 # Если книга с таким id есть → вернёт объект Book
                 result = await session.execute(
-                    select(BooksOrm).where(BooksOrm.id == book_id)
+                    select(Books).where(Books.id == book_id)
                 )
                 book = result.scalar_one_or_none()
                 # если книга в базе данных есть.
@@ -73,10 +73,10 @@ class BookRepository:
             # обновляем книгу по id в нашей таблице books, и возвращаем обновленный словарь нашей книги, и его обновленные значения
             async with session.begin():
                 stmt = (
-                    update(BooksOrm)
-                    .where(BooksOrm.id == book_id)
+                    update(Books)
+                    .where(Books.id == book_id)
                     .values(**data.model_dump())
-                    .returning(BooksOrm)
+                    .returning(Books)
                 )
                 # отправь запрос в базу данных
                 result = await session.execute(stmt)
@@ -97,7 +97,7 @@ class BookRepository:
             async with session.begin():
                 # Отправляем запрос в сессии и ищем в таблице одну запись по id
                 result = await session.execute(
-                    select(BooksOrm).where(BooksOrm.id == book_id)
+                    select(Books).where(Books.id == book_id)
                 )
                 book = result.scalar_one_or_none()
                 if not book:
@@ -105,6 +105,6 @@ class BookRepository:
 
                 # Удаляем книгу из базы данных
                 await session.execute(
-                    delete(BooksOrm).where(BooksOrm.id == book_id)
+                    delete(Books).where(Books.id == book_id)
                 )
                 return BookResponse.model_validate(book)

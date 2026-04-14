@@ -39,7 +39,7 @@ async def get_books():
                     {
                        "description" : "Не авторизован",
                        "model" : ErrorMessage,
-                    },
+                    }
             },
             response_model=BookResponse,
             dependencies=[Depends(check_auth)])

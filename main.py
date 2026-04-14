@@ -5,6 +5,7 @@ from db.database import create_tables
 from router.router import router as books_router
 from router.router_auth import router as login_router
 from fastapi.templating import Jinja2Templates
+from router.router_author import router as author_router
 
 templates = Jinja2Templates(directory="templates")
 
@@ -44,4 +45,5 @@ app = FastAPI(
 app.openapi = custom_openapi
 # Подключаем роутер для операций с префиксом books
 app.include_router(books_router)
+app.include_router(author_router)
 app.include_router(login_router)

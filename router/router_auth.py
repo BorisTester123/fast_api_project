@@ -20,7 +20,6 @@ async def get_db():
 
 @router.get("", response_class=HTMLResponse)
 async def get_login_form(request: Request):
-    """GET /login — открывает HTML-форму"""
     return templates.TemplateResponse(
         "login.html",
         {"request": request}

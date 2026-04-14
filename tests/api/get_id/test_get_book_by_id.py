@@ -55,7 +55,7 @@ def test_get_by_id_book(client, payload, expected_status):
     # отправляем запрос на получение книги по id
     response = client.get(f"/books/{book_id}")
     # проверяем что статус код == 200 или опрокидываем ошибку из Enums.
-    assert response.status_code == 200, GlobalMessageErrors.WRONG_STATUS_CODE.value
+    assert response.status_code == 200
     header = response.headers
     assert header.get("content-type") == "application/json"
 
