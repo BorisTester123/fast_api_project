@@ -1,6 +1,6 @@
 from db.database import async_session
 from db.author import Authors
-from schema.schema_authors import Author, AuthorResponse
+from schema.schema_authors import CreateAuthor, AuthorResponse
 from sqlalchemy import select, update, delete
 from fastapi import HTTPException
 
@@ -14,11 +14,11 @@ class AuthorRepository:
                 return [AuthorResponse.model_validate(author) for author in authors]
 
     @classmethod
-    async def create(cls, data: Author):
+    async def create(cls, data: CreateAuthor):
         async with async_session() as session:
             async with session.begin():
                 result = await session.execute(
-                    select(Author).where(Authors.author == data.author)
+                    select(Authors).where(Authors.author == data.author)
                 )
                 existing_author = result.scalar_one_or_none()
 
@@ -46,7 +46,7 @@ class AuthorRepository:
             return AuthorResponse.model_validate(author)
 
     @classmethod
-    async def update(cls, author_id: int, data: Author) -> AuthorResponse:
+    async def update(cls, author_id: int, data: CreateAuthor) -> AuthorResponse:
         async with async_session() as session:
             async with session.begin():
                 stmt = (

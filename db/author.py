@@ -1,6 +1,5 @@
-from sqlalchemy import ForeignKey
 from db.database import Model
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 
 class Authors(Model):
@@ -8,6 +7,6 @@ class Authors(Model):
 
     id : Mapped[int] = mapped_column(autoincrement=True, primary_key=True)
     author : Mapped[str]
-    composition : Mapped[str | None]
+    composition : Mapped[str | None] = mapped_column(nullable=True)
 
-    author_id : Mapped[int] = mapped_column(ForeignKey("books.id"))
+    books = relationship("Books",back_populates="author")

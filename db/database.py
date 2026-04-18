@@ -1,10 +1,13 @@
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.orm import DeclarativeBase
 from configuration import settings
+from sqlalchemy import text
 
 # Создаём асинхронный движок
 async_engine = create_async_engine(
-    settings.database_url_asyncpg
+    settings.database_url_asyncpg,
+    pool_pre_ping = True,
+    pool_recycle = 300
 )
 
 # Сессии
@@ -25,4 +28,6 @@ async def create_tables():
 # Асинхронная функция для удаления таблицы в БД
 async def delete_tables():
     async with async_engine.begin() as conn:
-        await conn.run_sync(Model.metadata.drop_all)
+        # Удаляем данные в связанной таблице.
+        await conn.execute(text("DROP TABLE IF EXISTS books CASCADE;"))
+        await conn.execute(text("DROP TABLE IF EXISTS authors CASCADE;"))

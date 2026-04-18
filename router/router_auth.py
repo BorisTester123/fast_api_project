@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Request, Form
+from fastapi import APIRouter, Request, Form, Depends
 from db.database import async_session
 from fastapi.responses import HTMLResponse, RedirectResponse
 from repository.user_repository import UserRepository
 from utils.util import verify_password
 from fastapi.templating import Jinja2Templates
+from sqlalchemy.ext.asyncio import AsyncSession
 templates = Jinja2Templates(directory="templates")
 
 
@@ -31,6 +32,7 @@ async def login(
         request : Request,
         username : str = Form(...),
         password : str = Form(...),
+        db: AsyncSession = Depends(get_db)
 ):
     user = await UserRepository.find_by_user(username)
 

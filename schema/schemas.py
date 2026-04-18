@@ -2,15 +2,15 @@ from pydantic import BaseModel, ConfigDict, Field
 from typing import Optional
 
 class BookCreate(BaseModel):
+    author_id: int = Field(...)
     name: str = Field(..., max_length=130)
     description: Optional[str] = Field(None, max_length=130)
-    author_id : int = Field(..., max_length=3)
 
 # Модель для описания Response.
 class BookResponse(BaseModel):
     id: int = Field(..., examples=["1"])
+    author_id: int = Field(..., examples=["Автор"])
     name: str = Field(..., examples=["Война и мир"])
-    author_id : int = Field(..., examples=["Автор"])
     description: str = Field(
     examples=["«Война и мир» — роман Льва Толстого, написанный в 1863–1869 годах. Жанр — роман-эпопея."])
     model_config = ConfigDict(from_attributes=True)
