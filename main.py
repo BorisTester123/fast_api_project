@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
-from db.database import create_tables
+from db.database import create_tables, delete_tables
 from router.router import router as books_router
 from router.router_auth import router as login_router
 from fastapi.templating import Jinja2Templates

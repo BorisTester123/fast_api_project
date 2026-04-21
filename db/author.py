@@ -7,6 +7,7 @@ class Authors(Model):
 
     id : Mapped[int] = mapped_column(autoincrement=True, primary_key=True)
     author : Mapped[str]
+    biography: Mapped[str | None] = mapped_column(nullable=True)
     composition : Mapped[str | None] = mapped_column(nullable=True)
 
     books = relationship("Books",back_populates="author")

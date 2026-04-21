@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends
-from schema.schema_authors import AuthorResponse, CreateAuthor, ErrorResponse, ErrorMessage
+from schema.schema_authors import AuthorResponse, CreateAuthor,ErrorMessage, ErrorAuth
 from repository.authors_repository import AuthorRepository
 from BasicAuth.check_authorization import check_auth
 
@@ -12,8 +12,8 @@ router = APIRouter(
             responses={
                 401:
                     {
-                        "description" : "Неавторизован",
-                        "model" : ErrorMessage
+                        "description" : "Unauthorized",
+                        "model" : ErrorAuth
                     }
             },
             response_model=list[AuthorResponse],
@@ -26,12 +26,12 @@ async def get_authors():
                  401:
                      {
                          "description" : "Неавторизован",
-                         "model" : ErrorMessage
+                         "model" : ErrorAuth
                      },
                  422:
                      {
                          "description" : "Не заполнены обязательные поля",
-                         "model" : ErrorResponse
+                         "model" : ErrorMessage
                      },
              },
              response_model=AuthorResponse,
@@ -44,7 +44,7 @@ async def create_book(book: CreateAuthor):
                 401:
                     {
                         "description" : "Неавторизован",
-                        "model" : ErrorMessage
+                        "model" : ErrorAuth
                     }
             },
             response_model=AuthorResponse,
@@ -60,12 +60,12 @@ async def get_book_one(author_id: int):
                 401:
                     {
                         "description" : "Unauthorized",
-                        "model" : ErrorMessage
+                        "model" : ErrorAuth
                     },
                 422:
                     {
                         "description" : "Не заполнены обязательные поля",
-                        "model" : ErrorResponse
+                        "model" : ErrorMessage
                     }
             },
             response_model=AuthorResponse,
@@ -81,12 +81,12 @@ async def update(author_id: int, author: CreateAuthor):
                    401:
                        {
                            "description" : "Unauthorized",
-                           "model" : ErrorMessage
+                           "model" : ErrorAuth
                        },
                    422:
                        {
                            "description" : "Не заполнены обязательные поля",
-                           "model" : ErrorResponse
+                           "model" : ErrorMessage
                        }
                },
                response_model=AuthorResponse,
