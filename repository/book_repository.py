@@ -25,19 +25,26 @@ class BookRepository:
             # контекстный менеджер транзакции
             async with session.begin():
                 # Проверяем, есть ли уже книга с таким названием
-                result = await session.execute(
-                    select(Books).where(Books.name == data.name)
+                author_result = await session.execute(
+                    select(Books).where(Books.author_id == data.author_id)
                 )
                 # возьми единственный объект, если он есть, иначе None, но если их несколько — ошибка.
-                existing_book = result.scalar_one_or_none()
+                author = author_result.scalar_one_or_none()
                 #  если такая книга с таким названием уже есть
-                if existing_book:
+                if not author:
                     # добавляем описание ошибки
                     raise HTTPException(
                         status_code=400,
-                        detail=f"Книга с названием '{data.name}' уже существует"
+                        detail=f"Автор не найден"
                     )
-
+                book_result = await session.execute(
+                    select(Books).where(Books.name == data.name)
+                )
+                if not book_result:
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"Книга с названием {data.name} уже существует"
+                    )
                 # Если книги с таким названием нет — создаём новую
                 book = Books(**data.model_dump())
                 # добавляем книгу в базу данных

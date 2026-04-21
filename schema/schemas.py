@@ -1,11 +1,15 @@
 from pydantic import BaseModel, ConfigDict, Field, field_validator
-from typing import Optional
 
 class BookCreate(BaseModel):
-    author_id: int = Field(...)
+    author_id: int
     name: str = Field(..., max_length=130)
-    description: Optional[str] = Field(None, max_length=130)
+    description: str = Field(None, max_length=130)
 
+    @field_validator("author_id")
+    def check_author(cls, author):
+        if not author:
+            raise ValueError("Поле author_id не может быть отрицательным")
+        return author
 # Модель для описания Response.
 class BookResponse(BaseModel):
     id: int = Field(..., examples=["1"])

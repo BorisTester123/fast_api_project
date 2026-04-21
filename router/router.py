@@ -44,8 +44,9 @@ async def get_books():
             response_model=BookResponse,
             dependencies=[Depends(check_auth)])
 async def create_book(book: BookCreate) -> BookResponse:
+    if not book:
+        raise ValueError("автор не найден")
     return await BookRepository.create(book)
-
 
 @router.get("/{book_id}", summary="Получение книги по ID",
             responses={
