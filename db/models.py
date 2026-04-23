@@ -12,7 +12,7 @@ class Books(Model):
     # ID автора
     author_id: Mapped[int] = mapped_column(ForeignKey("authors.id"))
     # Название книги (обязательно для заполнения)
-    name: Mapped[str] = mapped_column(nullable=True)
+    name: Mapped[str | None] = mapped_column(nullable=True)
     # Описание книги
     description: Mapped[str | None] = mapped_column(nullable=True)
 

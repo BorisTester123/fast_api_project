@@ -6,10 +6,10 @@ class BookCreate(BaseModel):
     description: str = Field(None, max_length=130)
 
     @field_validator("author_id")
+    @classmethod
     def check_author(cls, author):
         if not author:
             raise ValueError("Поле author_id не может быть отрицательным")
-        return author
 # Модель для описания Response.
 class BookResponse(BaseModel):
     id: int = Field(..., examples=["1"])
@@ -21,7 +21,7 @@ class BookResponse(BaseModel):
 
 # Описание моделей для разных статусов кодов.
 class ErrorResponse(BaseModel):
-    name: str = Field(..., examples=["Поле name обязательно для заполнения"])
+    name: str = Field(..., examples=["Поле author_id обязательно для заполнения"])
 
 class ErrorMessage(BaseModel):
     detail: str = Field(..., examples=["Unauthorized"])
