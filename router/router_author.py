@@ -36,7 +36,7 @@ async def get_authors():
              },
              response_model=AuthorResponse,
              dependencies=[Depends(check_auth)])
-async def create_book(book: CreateAuthor):
+async def create_author(book: CreateAuthor):
     return await AuthorRepository.create(book)
 
 @router.get("/{author_id}", summary="Получения автора по ID",
@@ -49,7 +49,7 @@ async def create_book(book: CreateAuthor):
             },
             response_model=AuthorResponse,
             dependencies=[Depends(check_auth)])
-async def get_book_one(author_id: int):
+async def get_author_one(author_id: int):
     author = await AuthorRepository.find_one(author_id)
     if not author:
         raise HTTPException(404, "Автор не найден")

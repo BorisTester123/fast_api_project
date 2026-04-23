@@ -20,18 +20,19 @@ class AuthorRepository:
                 result = await session.execute(
                     select(Authors).where(Authors.author == data.author)
                 )
-                existing_author = result.scalar_one_or_none()
+                create_author = result.scalar_one_or_none()
+                if not create_author:
+                    raise HTTPException(400, 'Поле author обязательно для заполнения')
 
-                if existing_author:
-                    raise HTTPException(
-                        400,
-                        detail=f"Книга с названием '{data.author}' уже существует"
-                        )
+                check_author = await session.execute(
+                    select(Authors).where(Authors.author == data.author)
+                )
+                if check_author:
+                   raise HTTPException(400, f"{data.author} уже добавлен")
                 author = Authors(**data.model_dump())
                 session.add(author)
                 await session.flush()
                 await session.refresh(author)
-
                 return AuthorResponse.model_validate(author)
 
     @classmethod

@@ -2,7 +2,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 class BookCreate(BaseModel):
     author_id: int
-    name: str = Field(..., max_length=130)
+    name: str = Field(None, max_length=130)
     description: str = Field(None, max_length=130)
 
     @field_validator("author_id")
@@ -14,7 +14,7 @@ class BookCreate(BaseModel):
 class BookResponse(BaseModel):
     id: int = Field(..., examples=["1"])
     author_id: int = Field(..., examples=["Автор"])
-    name: str = Field(..., examples=["Война и мир"])
+    name: str = Field(None, examples=["Война и мир"])
     description: str = Field(
     examples=["«Война и мир» — роман Льва Толстого, написанный в 1863–1869 годах. Жанр — роман-эпопея."])
     model_config = ConfigDict(from_attributes=True)
