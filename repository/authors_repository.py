@@ -6,7 +6,7 @@ from fastapi import HTTPException
 
 class AuthorRepository:
     @classmethod
-    async def find_all(cls) -> list[AuthorResponse]:
+    async def all(cls) -> list[AuthorResponse]:
         async with async_session() as session:
             async with session.begin():
                 result = await session.execute(select(Authors))
@@ -18,17 +18,9 @@ class AuthorRepository:
         async with async_session() as session:
             async with session.begin():
                 result = await session.execute(
-                    select(Authors).where(Authors.author == data.author)
+                    select(Authors).where(Authors.name == data.name)
                 )
                 create_author = result.scalar_one_or_none()
-                if not create_author:
-                    raise HTTPException(400, 'Поле author обязательно для заполнения')
-
-                check_author = await session.execute(
-                    select(Authors).where(Authors.author == data.author)
-                )
-                if check_author:
-                   raise HTTPException(400, f"{data.author} уже добавлен")
                 author = Authors(**data.model_dump())
                 session.add(author)
                 await session.flush()
@@ -36,7 +28,7 @@ class AuthorRepository:
                 return AuthorResponse.model_validate(author)
 
     @classmethod
-    async def find_one(cls, author_id: int) -> AuthorResponse:
+    async def find(cls, author_id: int) -> AuthorResponse:
         async with async_session() as session:
             async with session.begin():
                 result = await session.execute(select(Authors).where(Authors.id == author_id))
@@ -76,10 +68,7 @@ class AuthorRepository:
                 if not author:
                     raise HTTPException(404, "Автор не найден")
 
-                await session.execute(
-                    delete(Authors).where(Authors.id == author_id)
-                )
-
+                await session.delete(author)
                 return AuthorResponse.model_validate(author)
 
 

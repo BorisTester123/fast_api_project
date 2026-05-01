@@ -8,7 +8,6 @@ from router.router_auth import get_db
 
 security = HTTPBasic()
 
-# Функция для проверки наших кредов авторизации
 async def check_auth(
     credentials: HTTPBasicCredentials = Depends(security),
     db: AsyncSession = Depends(get_db)
@@ -19,7 +18,7 @@ async def check_auth(
 
     user: User | None = result.scalar_one_or_none()
 
-    if user is None or not verify_password(credentials.password, user.password_hash):
+    if not user or not verify_password(credentials.password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Неверный логин или пароль",

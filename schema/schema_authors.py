@@ -1,23 +1,25 @@
 from pydantic import BaseModel, ConfigDict, Field, field_validator
+from typing import Optional
 
 class CreateAuthor(BaseModel):
-    author : str = Field(..., max_length=100)
-    biography : str = Field(None, max_length=100)
-    composition : str = Field(None, max_length=100)
+    name : str = Field(..., max_length=100)
+    biography : Optional[str] = Field(None, max_length=100)
+    composition : Optional[str] = Field(None, max_length=100)
 
-class AuthorResponse(BaseModel):
-    id : int = Field(examples=[1])
-    author : str = (Field(examples=['Лев Толстой']))
-    biography : str = Field(examples=['Русский писатель, просветитель'])
-    composition : str = (Field(examples=['Война и мир']))
-    model_config = ConfigDict(from_attributes=True)
-
-    @field_validator("author")
+    @field_validator("name")
     @classmethod
     def check_author(cls, v):
         if not v:
-            raise ValueError("Поле author не может быть пустым")
+            raise ValueError("поле name обязательно для заполнения")
         return v
+
+class AuthorResponse(BaseModel):
+    id : int = Field(examples=[1])
+    name : str = (Field(examples=['Лев Толстой']))
+    biography : Optional[str] = Field(None, examples=['Русский писатель, просветитель'])
+    composition : Optional[str] = Field(None, examples=['Война и мир'])
+    model_config = ConfigDict(from_attributes=True)
+
 
 class ErrorAuth(BaseModel):
     detail : str = Field(examples=['Unauthorized'])

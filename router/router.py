@@ -1,15 +1,8 @@
-# Импортируем класс APIRouter для создания API endpoints
 from fastapi import APIRouter, HTTPException, Depends
-# Импортируем модель данных для работы с книгами
 from schema.schemas import BookResponse, BookCreate, ErrorResponse, ErrorMessage
-# Импортируем репозиторий для работы с книгами
 from repository.book_repository import BookRepository
-# Импортируем из файла авторизации функцию check BasicAuth.
 from BasicAuth.check_authorization import check_auth
-
-# Создаем роутер для группировки endpoints связанных с операциями
 router = APIRouter(
-    # Присваиваем тэг и префикс для нашей документации API
     prefix="/books",
     tags=["Книги"]
 )
@@ -27,7 +20,7 @@ router = APIRouter(
 # Асинхронная функция для получения списка книг
 async def get_books():
     # возвращаем из репозитория все книги из базы данных
-    return await BookRepository.find_all()
+    return await BookRepository.all()
 
 @router.post("", summary='Создание новой книги', status_code=201,
              responses={
@@ -41,11 +34,9 @@ async def get_books():
                        "model" : ErrorMessage,
                     }
             },
-            response_model=BookResponse,
+            response_model=BookCreate,
             dependencies=[Depends(check_auth)])
-async def create_book(book: BookCreate) -> BookResponse:
-    if not book:
-        raise ValueError("автор не найден")
+async def create_book(book: BookCreate):
     return await BookRepository.create(book)
 
 @router.get("/{book_id}", summary="Получение книги по ID",
@@ -59,12 +50,9 @@ async def create_book(book: BookCreate) -> BookResponse:
             response_model=BookResponse,
             dependencies=[Depends(check_auth)])
 async def get_book(book_id: int):
-    # ищем книгу по ID в базе данных
-    book = await BookRepository.find_one(book_id)
-    # Проверяем если книги в базе нет
+    book = await BookRepository.find(book_id)
     if not book:
-        # Если книги в базе данных нет возвращаем ошибку
-        raise HTTPException(status_code=404, detail="Книга не найдена")
+        raise HTTPException(status_code=404, detail=f"Книга с таким id: {book_id} не найдена")
     return book
 
 @router.put("/{book_id}",summary="Изменение книги по ID",
@@ -83,13 +71,9 @@ async def get_book(book_id: int):
             response_model=BookResponse,
             dependencies=[Depends(check_auth)])
 async def update_book(book_id: int, book: BookCreate):
-    # Отправляем запрос в базу данных на обновление книги
-    updated_book = await BookRepository.update_one(book_id, book)
-    # Если книги в базе данных нет
+    updated_book = await BookRepository.update(book_id, book)
     if not updated_book:
-        # Возвращаем ошибку о том, что книга не найдена
-        raise HTTPException(status_code=404, detail="Книга не найдена")
-    # Иначе обновляем книгу в базе данных
+        raise HTTPException(status_code=404, detail=f"Книга с таким id: {book_id} не найдена")
     return updated_book
 
 @router.delete("/{book_id}", summary="Удаление книги по ID",
@@ -108,14 +92,7 @@ async def update_book(book_id: int, book: BookCreate):
                response_model=BookResponse,
                dependencies=[Depends(check_auth)])
 async def delete_book(book_id: int):
-    # ищем книгу в базе данных
-    book = await BookRepository.find_one(book_id)
-    # если книги в базе данных нет
-    if not book:
-        # возвращаем ошибку о том, что книги нет
-        raise HTTPException(status_code=404, detail="Книга не найдена")
-    # удаляем книгу из базы данных
-    await BookRepository.delete_one(book_id)
-    # возвращаем удаленную книгу
+    book = await BookRepository.find(book_id)
+    await BookRepository.delete(book_id)
     return book
 

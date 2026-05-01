@@ -19,7 +19,7 @@ router = APIRouter(
             response_model=list[AuthorResponse],
             dependencies = [Depends(check_auth)])
 async def get_authors():
-    return await AuthorRepository.find_all()
+    return await AuthorRepository.all()
 
 @router.post("", summary="Создание нового автора",
              responses={
@@ -36,9 +36,10 @@ async def get_authors():
              },
              response_model=AuthorResponse,
              dependencies=[Depends(check_auth)])
-async def create_author(book: CreateAuthor):
-    return await AuthorRepository.create(book)
-
+async def create_author(author: CreateAuthor):
+    if not author:
+        raise ValueError("Автор не найден")
+    return await AuthorRepository.create(author)
 @router.get("/{author_id}", summary="Получения автора по ID",
             responses={
                 401:
@@ -49,8 +50,8 @@ async def create_author(book: CreateAuthor):
             },
             response_model=AuthorResponse,
             dependencies=[Depends(check_auth)])
-async def get_author_one(author_id: int):
-    author = await AuthorRepository.find_one(author_id)
+async def get_one_author(author_id: int):
+    author = await AuthorRepository.find(author_id)
     if not author:
         raise HTTPException(404, "Автор не найден")
     return author
@@ -92,7 +93,7 @@ async def update(author_id: int, author: CreateAuthor):
                response_model=AuthorResponse,
                dependencies=[Depends(check_auth)])
 async def delete(author_id: int):
-    author = await AuthorRepository.find_one(author_id)
+    author = await AuthorRepository.find(author_id)
     if not author:
         raise HTTPException(404, "Автор не найден")
     await AuthorRepository.delete(author_id)
