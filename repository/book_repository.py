@@ -1,5 +1,5 @@
 from db.database import async_session
-from db.models import Books
+from db.books import Books
 from db.author import Authors
 from schema.schemas import BookResponse, BookCreate
 from sqlalchemy import select, update, delete
@@ -24,14 +24,21 @@ class BookRepository:
                 author = result.scalar_one_or_none()
 
                 if not author:
-                    raise HTTPException(404, f'Автор с id: {data.author_id} не найден')
+                    raise HTTPException(404, f'Автор с таким id: {data.author_id} не найден')
 
+                stmt = (
+                    select(Books).where(
+                        Books.title == data.title
+                    )
+                )
+                existing_book = await session.scalar(stmt)
+                if existing_book:
+                    raise HTTPException(422, f'Книга с таким названием: {data.title} уже существует')
                 new_book = Books(
                     author_id=data.author_id,
-                    name=data.name or "",
+                    title=data.title,
                     description=data.description or ""
                 )
-
                 session.add(new_book)
                 await session.flush()
                 await session.refresh(new_book)
@@ -54,7 +61,6 @@ class BookRepository:
     async def update(cls, book_id: int, data: BookCreate) -> BookResponse | None:
         async with async_session() as session:
             async with session.begin():
-
                 book_result = await session.execute(
                     select(Books).where(Books.id == book_id)
                 )

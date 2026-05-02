@@ -1,3 +1,4 @@
+from fastapi import HTTPException
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from typing import Optional
 
@@ -10,7 +11,7 @@ class CreateAuthor(BaseModel):
     @classmethod
     def check_author(cls, v):
         if not v:
-            raise ValueError("поле name обязательно для заполнения")
+            raise HTTPException(422, "Поле name обязательно для заполнения")
         return v
 
 class AuthorResponse(BaseModel):
@@ -25,4 +26,4 @@ class ErrorAuth(BaseModel):
     detail : str = Field(examples=['Unauthorized'])
 
 class ErrorMessage(BaseModel):
-    author : str = Field(examples=['поле author обязателен для заполнения'])
+    author : str = Field(examples=['Поле name обязательно для заполнения'])

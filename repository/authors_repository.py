@@ -21,6 +21,8 @@ class AuthorRepository:
                     select(Authors).where(Authors.name == data.name)
                 )
                 create_author = result.scalar_one_or_none()
+                if create_author:
+                    raise HTTPException(422, f"Автор с таким именем: {data.name} уже существует")
                 author = Authors(**data.model_dump())
                 session.add(author)
                 await session.flush()
@@ -53,7 +55,7 @@ class AuthorRepository:
                 update_author = result.scalar_one_or_none()
                 await session.commit()
             if not update_author:
-                raise HTTPException(404, "Автор не найден")
+                raise HTTPException(404, f"Автор с таким ID: {author_id} не найден")
             return AuthorResponse.model_validate(update_author)
 
     @classmethod
@@ -64,10 +66,6 @@ class AuthorRepository:
                     select(Authors).where(Authors.id == author_id)
                 )
                 author = result.scalar_one_or_none()
-
-                if not author:
-                    raise HTTPException(404, "Автор не найден")
-
                 await session.delete(author)
                 return AuthorResponse.model_validate(author)
 

@@ -95,6 +95,6 @@ async def update(author_id: int, author: CreateAuthor):
 async def delete(author_id: int):
     author = await AuthorRepository.find(author_id)
     if not author:
-        raise HTTPException(404, "Автор не найден")
+        raise HTTPException(404, f"Автор с таким ID: {author_id} не найден")
     await AuthorRepository.delete(author_id)
     return author
