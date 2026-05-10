@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends
-from schema.schemas import BookResponse, BookCreate, ErrorResponse, ErrorMessage
+from schema.book_schema import BookResponse, BookCreate, ErrorResponse, ErrorMessage
 from repository.book_repository import BookRepository
 from BasicAuth.check_authorization import check_auth
 router = APIRouter(
@@ -17,9 +17,7 @@ router = APIRouter(
             },
             response_model=list[BookResponse],
             dependencies=[Depends(check_auth)])
-# Асинхронная функция для получения списка книг
 async def get_books():
-    # возвращаем из репозитория все книги из базы данных
     return await BookRepository.all()
 
 @router.post("", summary='Создание новой книги', status_code=201,
@@ -34,7 +32,7 @@ async def get_books():
                        "model" : ErrorMessage,
                     }
             },
-            response_model=BookCreate,
+            response_model=BookResponse,
             dependencies=[Depends(check_auth)])
 async def create_book(book: BookCreate):
     return await BookRepository.create(book)

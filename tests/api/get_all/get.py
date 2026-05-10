@@ -1,7 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
 from main import app
-from router.router_auth import get_db
+from router.auth_router import get_db
 from db.database import async_session
 import os
 from dotenv import load_dotenv

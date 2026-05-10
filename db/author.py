@@ -1,13 +1,14 @@
-from db.database import Model
+from db.database import Base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from db.author_book import author_book
 
 
-class Authors(Model):
+class Author(Base):
     __tablename__ = "authors"
 
-    id : Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    author_id : Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name : Mapped[str] = mapped_column(unique=True)
     biography: Mapped[str | None] = mapped_column(nullable=True)
     composition : Mapped[str | None] = mapped_column(nullable=True)
 
-    books = relationship("Books",back_populates="author", cascade="all, delete-orphan")
+    books = relationship("Book", secondary=author_book, back_populates="authors")

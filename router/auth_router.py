@@ -8,9 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 templates = Jinja2Templates(directory="templates")
 
 
-# Создаем роутер для группировки endpoints связанных с операциями
 router = APIRouter(
-    # Присваиваем тэг и префикс для нашей документации API
     prefix="/login",
     tags=["Авторизация"]
 )

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends
-from schema.schema_authors import AuthorResponse, CreateAuthor,ErrorMessage, ErrorAuth
+from schema.author_schema import AuthorResponse, CreateAuthor,ErrorMessage, ErrorAuth
 from repository.authors_repository import AuthorRepository
 from BasicAuth.check_authorization import check_auth
 
@@ -21,7 +21,7 @@ router = APIRouter(
 async def get_authors():
     return await AuthorRepository.all()
 
-@router.post("", summary="Создание нового автора",
+@router.post("", summary="Создание нового автора", status_code=201,
              responses={
                  401:
                      {
@@ -37,9 +37,8 @@ async def get_authors():
              response_model=AuthorResponse,
              dependencies=[Depends(check_auth)])
 async def create_author(author: CreateAuthor):
-    if not author:
-        raise ValueError("Автор не найден")
     return await AuthorRepository.create(author)
+
 @router.get("/{author_id}", summary="Получения автора по ID",
             responses={
                 401:
@@ -56,7 +55,7 @@ async def get_one_author(author_id: int):
         raise HTTPException(404, "Автор не найден")
     return author
 
-@router.put("/{author_id}", summary="Изменение автора по ID",
+@router.put("/{author_id}", summary="Изменение автора по ID", status_code=200,
             responses={
                 401:
                     {

@@ -1,13 +1,12 @@
-from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from db.database import Model
+from db.database import Base
+from db.author_book import author_book
 
-class Books(Model):
+class Book(Base):
     __tablename__ = "books"
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    author_id: Mapped[int] = mapped_column(ForeignKey("authors.id", ondelete="CASCADE"))
-    title: Mapped[str | None] = mapped_column(nullable=True, unique=True)
+    book_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    title: Mapped[str] = mapped_column(unique=True, nullable=False)
     description: Mapped[str | None] = mapped_column(nullable=True)
 
-    author = relationship("Authors", back_populates="books", passive_deletes=True)
+    authors = relationship("Author", secondary=author_book, back_populates="books", passive_deletes=True)

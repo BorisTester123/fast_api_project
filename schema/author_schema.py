@@ -11,11 +11,11 @@ class CreateAuthor(BaseModel):
     @classmethod
     def check_author(cls, v):
         if not v:
-            raise HTTPException(422, "Поле name обязательно для заполнения")
+            raise HTTPException(422, f"Поле 'name' обязательно для заполнения")
         return v
 
 class AuthorResponse(BaseModel):
-    id : int = Field(examples=[1])
+    author_id : int = Field(examples=[1])
     name : str = (Field(examples=['Лев Толстой']))
     biography : Optional[str] = Field(None, examples=['Русский писатель, просветитель'])
     composition : Optional[str] = Field(None, examples=['Война и мир'])

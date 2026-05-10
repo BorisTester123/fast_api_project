@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from db.user import User
 from utils.util import verify_password
-from router.router_auth import get_db
+from router.auth_router import get_db
 
 security = HTTPBasic()
 

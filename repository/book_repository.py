@@ -1,56 +1,68 @@
+from sqlalchemy.orm import selectinload
 from db.database import async_session
-from db.books import Books
-from db.author import Authors
-from schema.schemas import BookResponse, BookCreate
-from sqlalchemy import select, update, delete
+from db.books import Book
+from db.author import Author
+from schema.book_schema import BookResponse, BookCreate
+from sqlalchemy import select
 from fastapi import HTTPException
 
 class BookRepository:
     @classmethod
     async def all(cls) -> list[BookResponse]:
-        async with async_session() as session:
+        async with (async_session() as session):
             async with session.begin():
-                result = await session.execute(select(Books))
-                books = result.scalars().all()
+                result = await session.execute(
+                    select(Book)
+                    .options(selectinload(Book.authors)))
+                books = result.unique().scalars().all()
                 return [BookResponse.model_validate(book) for book in books]
 
     @classmethod
     async def create(cls, data: BookCreate) -> BookResponse:
         async with async_session() as session:
             async with session.begin():
-                result = await session.execute(
-                    select(Authors).where(Authors.id == data.author_id)
+                author_result = await session.execute(
+                    select(Author).where(Author.author_id.in_(data.author_ids))
                 )
-                author = result.scalar_one_or_none()
-
-                if not author:
-                    raise HTTPException(404, f'Автор с таким id: {data.author_id} не найден')
-
-                stmt = (
-                    select(Books).where(
-                        Books.title == data.title
+                authors = author_result.scalars().all()
+                if len(authors) != len(data.author_ids):
+                    raise HTTPException(
+                        404,
+                        f"Авторы с такими id - {data.author_ids} не найдены"
                     )
+
+                book_result = await session.execute(
+                    select(Book)
+                    .options(selectinload(Book.authors))
+                    .where(Book.title == data.title)
                 )
-                existing_book = await session.scalar(stmt)
+                existing_book = book_result.scalars().all()
                 if existing_book:
                     raise HTTPException(422, f'Книга с таким названием: {data.title} уже существует')
-                new_book = Books(
-                    author_id=data.author_id,
-                    title=data.title,
-                    description=data.description or ""
-                )
-                session.add(new_book)
-                await session.flush()
-                await session.refresh(new_book)
 
-                return BookResponse.model_validate(new_book)
+                result_book = Book(
+                    title=data.title,
+                    description=data.description or "",
+                    authors=authors
+                    )
+                session.add(result_book)
+
+                await session.flush()
+                book_with_authors = await session.scalar(
+                    select(Book)
+                    .options(selectinload(Book.authors))
+                    .where(Book.book_id == result_book.book_id)
+                )
+                return BookResponse.model_validate(book_with_authors)
 
     @classmethod
     async def find(cls, book_id: int) -> BookResponse:
         async with async_session() as session:
             async with session.begin():
                 result = await session.execute(
-                    select(Books).where(Books.id == book_id)
+                    select(Book)
+                    .options(selectinload(Book.authors))
+                    .where(Book.book_id == book_id)
                 )
                 book = result.scalar_one_or_none()
         if not book:
@@ -58,48 +70,61 @@ class BookRepository:
         return BookResponse.model_validate(book)
 
     @classmethod
-    async def update(cls, book_id: int, data: BookCreate) -> BookResponse | None:
+    async def update(cls, book_id: int, data: BookCreate) -> BookResponse:
         async with async_session() as session:
             async with session.begin():
                 book_result = await session.execute(
-                    select(Books).where(Books.id == book_id)
+                    select(Book)
+                    .options(selectinload(Book.authors))
+                    .where(Book.book_id == book_id)
                 )
 
                 book = book_result.scalar_one_or_none()
+
                 if not book:
                     raise HTTPException(404, f"Книга с таким id: {book_id} не найдена")
 
                 author_result = await session.execute(
-                    select(Authors).where(Authors.id == data.author_id)
+                    select(Author).where(
+                        Author.author_id.in_(data.author_ids)
+                    )
                 )
+                authors = author_result.scalars().all()
 
-                author = author_result.scalar_one_or_none()
-                if not author:
-                    raise HTTPException(404, f"Автор с таким id: {data.author_id} не найден")
+                if len(authors) != len(data.author_ids):
+                    raise HTTPException(404, f"Авторы с таким id: {data.author_ids} не найдены")
 
-                stmt = (
-                    update(Books)
-                    .where(Books.id == book_id)
-                    .values(**data.model_dump())
-                    .returning(Books)
-                )
-                result = await session.execute(stmt)
-                update_book = result.scalar_one_or_none()
-
-                return BookResponse.model_validate(update_book)
+                book.title = data.title
+                book.description = data.description
+                book.authors = authors
+                await session.refresh(book)
+                return BookResponse.model_validate(book)
 
     @classmethod
     async def delete(cls, book_id: int) -> BookResponse:
         async with async_session() as session:
             async with session.begin():
                 result = await session.execute(
-                    select(Books).where(Books.id == book_id)
+                    select(Book)
+                    .options(selectinload(Book.authors))
+                    .where(Book.book_id == book_id)
                 )
-                book = result.scalar_one_or_none()
-                if not book:
-                    raise HTTPException(404, f"Книга с таким ID: {book_id} не найдена")
 
-                await session.execute(
-                    delete(Books).where(Books.id == book_id)
+                book = result.scalar_one_or_none()
+
+                if not book:
+                    raise HTTPException(404, f"Книга с id: {book_id} не найдена")
+
+                authors = list(book.authors)
+
+                book_response = BookResponse(
+                    book_id=book.book_id,
+                    title=book.title,
+                    description=book.description,
+                    authors=authors
                 )
-                return BookResponse.model_validate(book)
+
+                await session.delete(book)
+                await session.flush()
+
+                return book_response

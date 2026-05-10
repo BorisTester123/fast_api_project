@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Mapped, mapped_column
-from db.database import Model
+from db.database import Base
 
-class User(Model):
+class User(Base):
     __tablename__ = "users"
 
     id : Mapped[int] = mapped_column(autoincrement=True, primary_key=True)
