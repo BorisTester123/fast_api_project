@@ -1,7 +1,8 @@
+from db.author_book import author_book
 from db.database import async_session
 from db.author import Author
-from schema.author_schema import CreateAuthor, AuthorResponse
-from sqlalchemy import select, update
+from schema.author_schema import CreateAuthor, AuthorResponse, AuthorTop
+from sqlalchemy import select, update, func
 from fastapi import HTTPException
 
 class AuthorRepository:
@@ -53,10 +54,29 @@ class AuthorRepository:
                 result = await session.execute(stmt)
 
                 update_author = result.scalar_one_or_none()
-                await session.commit()
             if not update_author:
                 raise HTTPException(404, f"Автор с таким ID: {author_id} не найден")
             return AuthorResponse.model_validate(update_author)
+
+    @classmethod
+    async def authors_top(cls):
+        async with async_session() as session:
+            async with session.begin():
+                books_count = func.count(author_book.c.book_id)
+                result = await session.execute(
+                    select(Author, books_count)
+                    .join(author_book, Author.author_id == author_book.c.author_id)
+                    .group_by(Author.author_id, Author.name)
+                    .order_by(books_count.desc())
+                    .limit(10)
+                )
+                author_top = result.all()
+                return [AuthorTop.model_validate({
+                    "authors" : [author],
+                    "books_count" : count
+                })
+                    for author, count in author_top
+                ]
 
     @classmethod
     async def delete(cls, author_id: int):

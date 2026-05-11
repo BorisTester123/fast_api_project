@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends
-from schema.author_schema import AuthorResponse, CreateAuthor,ErrorMessage, ErrorAuth
+from schema.author_schema import AuthorResponse, CreateAuthor, ErrorMessage, ErrorAuth, AuthorTop
 from repository.authors_repository import AuthorRepository
 from BasicAuth.check_authorization import check_auth
 
@@ -18,7 +18,7 @@ router = APIRouter(
             },
             response_model=list[AuthorResponse],
             dependencies = [Depends(check_auth)])
-async def get_authors():
+async def all():
     return await AuthorRepository.all()
 
 @router.post("", summary="Создание нового автора", status_code=201,
@@ -36,8 +36,20 @@ async def get_authors():
              },
              response_model=AuthorResponse,
              dependencies=[Depends(check_auth)])
-async def create_author(author: CreateAuthor):
+async def create(author: CreateAuthor):
     return await AuthorRepository.create(author)
+@router.get("/top", summary="Получение списка топ 10 авторов по количеству книг",
+            responses={
+                401:
+                    {
+                        "description" : "Unauthorized",
+                        "model" : ErrorAuth
+                    }
+            },
+            response_model=list[AuthorTop],
+            dependencies=[Depends(check_auth)])
+async def getting_top_authors():
+    return await AuthorRepository.authors_top()
 
 @router.get("/{author_id}", summary="Получения автора по ID",
             responses={
@@ -49,7 +61,7 @@ async def create_author(author: CreateAuthor):
             },
             response_model=AuthorResponse,
             dependencies=[Depends(check_auth)])
-async def get_one_author(author_id: int):
+async def find(author_id: int):
     author = await AuthorRepository.find(author_id)
     if not author:
         raise HTTPException(404, "Автор не найден")
