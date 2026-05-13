@@ -1,5 +1,5 @@
 from pydantic import BaseModel, ConfigDict, Field, field_validator
-from typing import Optional, List
+from typing import Optional
 
 
 class CreateAuthor(BaseModel):
@@ -26,11 +26,16 @@ class AuthorResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 class AuthorTop(BaseModel):
-    authors : List[AuthorResponse] = Field(
+    authors : AuthorResponse = Field(
         default_factory=list,
         examples=[[{"author_id": 1, "name": "Пушкин"}, {"author_id": 2, "name": "Лермонтов"}]]
     )
     books_count : int
+
+class Pagination(BaseModel):
+    per_page : int = Field(ge=1, default=1, le=500000)
+    page : int = Field(ge=1, le=100, default=1)
+
 
 class ErrorAuth(BaseModel):
     detail : str = Field(examples=['Unauthorized'])

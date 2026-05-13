@@ -17,7 +17,7 @@ router = APIRouter(
             },
             response_model=list[BookResponse],
             dependencies=[Depends(check_auth)])
-async def get_books():
+async def all():
     return await BookRepository.all()
 
 @router.post("", summary='Создание новой книги', status_code=201,
@@ -34,7 +34,7 @@ async def get_books():
             },
             response_model=BookResponse,
             dependencies=[Depends(check_auth)])
-async def create_book(book: BookCreate):
+async def create(book: BookCreate):
     return await BookRepository.create(book)
 
 @router.get("/{book_id}", summary="Получение книги по ID",
@@ -47,7 +47,7 @@ async def create_book(book: BookCreate):
             },
             response_model=BookResponse,
             dependencies=[Depends(check_auth)])
-async def get_book(book_id: int):
+async def find(book_id: int):
     book = await BookRepository.find(book_id)
     if not book:
         raise HTTPException(status_code=404, detail=f"Книга с таким id: {book_id} не найдена")
@@ -68,7 +68,7 @@ async def get_book(book_id: int):
             },
             response_model=BookResponse,
             dependencies=[Depends(check_auth)])
-async def update_book(book_id: int, book: BookCreate):
+async def update(book_id: int, book: BookCreate):
     updated_book = await BookRepository.update(book_id, book)
     if not updated_book:
         raise HTTPException(status_code=404, detail=f"Книга с таким id: {book_id} не найдена")
@@ -89,7 +89,7 @@ async def update_book(book_id: int, book: BookCreate):
                },
                response_model=BookResponse,
                dependencies=[Depends(check_auth)])
-async def delete_book(book_id: int):
+async def delete(book_id: int):
     book = await BookRepository.find(book_id)
     await BookRepository.delete(book_id)
     return book

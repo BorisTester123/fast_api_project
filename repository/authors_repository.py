@@ -1,7 +1,8 @@
+from sqlalchemy.sql.annotation import Annotated
 from db.author_book import author_book
 from db.database import async_session
 from db.author import Author
-from schema.author_schema import CreateAuthor, AuthorResponse, AuthorTop
+from schema.author_schema import CreateAuthor, AuthorResponse, AuthorTop, Pagination
 from sqlalchemy import select, update, func
 from fastapi import HTTPException
 
@@ -59,24 +60,25 @@ class AuthorRepository:
             return AuthorResponse.model_validate(update_author)
 
     @classmethod
-    async def authors_top(cls):
+    async def top(cls, pagination: Annotated[Pagination]) -> list[AuthorTop]:
         async with async_session() as session:
             async with session.begin():
                 books_count = func.count(author_book.c.book_id)
-                result = await session.execute(
+                offset = (pagination.page - 1) * pagination.per_page
+
+                query = await session.execute(
                     select(Author, books_count)
                     .join(author_book, Author.author_id == author_book.c.author_id)
                     .group_by(Author.author_id, Author.name)
                     .order_by(books_count.desc())
-                    .limit(10)
+                    .limit(pagination.per_page)
+                    .offset(offset)
                 )
-                author_top = result.all()
+                top = query.all()
                 return [AuthorTop.model_validate({
-                    "authors" : [author],
+                    "author" : author,
                     "books_count" : count
-                })
-                    for author, count in author_top
-                ]
+                }) for author, count in top]
 
     @classmethod
     async def delete(cls, author_id: int):

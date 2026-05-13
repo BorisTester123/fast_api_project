@@ -1,6 +1,6 @@
 from sqlalchemy.orm import selectinload
 from enums.enum import CountryCode
-from algoritm_isbn import generate_isbn13
+from utils.algoritm_isbn import generate_isbn13
 from db.database import async_session
 from db.books import Book
 from db.author import Author

@@ -1,5 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
-from schema.author_schema import AuthorResponse, CreateAuthor, ErrorMessage, ErrorAuth, AuthorTop
+from typing import Annotated
+from fastapi import Query
+from schema.author_schema import AuthorResponse, CreateAuthor, ErrorMessage, ErrorAuth, AuthorTop, Pagination
 from repository.authors_repository import AuthorRepository
 from BasicAuth.check_authorization import check_auth
 
@@ -38,6 +40,13 @@ async def all():
              dependencies=[Depends(check_auth)])
 async def create(author: CreateAuthor):
     return await AuthorRepository.create(author)
+
+async def get_pagination(
+    page: Annotated[int, Query(ge=1, description="Номер страницы")] = 1,
+    per_page: Annotated[int, Query(ge=1, le=500000, description="Записей на странице")] = 10
+) -> Pagination:
+    return Pagination(page=page, per_page=per_page)
+
 @router.get("/top", summary="Получение списка топ 10 авторов по количеству книг",
             responses={
                 401:
@@ -48,8 +57,8 @@ async def create(author: CreateAuthor):
             },
             response_model=list[AuthorTop],
             dependencies=[Depends(check_auth)])
-async def getting_top_authors():
-    return await AuthorRepository.authors_top()
+async def top(pagination: Annotated[Pagination, Depends(get_pagination)]):
+    return await AuthorRepository.top(pagination)
 
 @router.get("/{author_id}", summary="Получения автора по ID",
             responses={
