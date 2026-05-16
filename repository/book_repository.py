@@ -1,5 +1,4 @@
 from sqlalchemy.orm import selectinload
-from enums.enum import CountryCode
 from utils.algoritm_isbn import generate_isbn13
 from db.database import async_session
 from db.books import Book
@@ -46,10 +45,11 @@ class BookRepository:
                     isbn=generate_isbn13(),
                     title=data.title,
                     description=data.description or "",
-                    language_code=CountryCode.RU,
+                    language_code=data.language_code,
                     authors=authors,
                     publication_date=data.publication_date
                     )
+
                 session.add(result_book)
                 await session.flush()
                 book_with_authors = await session.scalar(
@@ -135,7 +135,7 @@ class BookRepository:
                     isbn=generate_isbn13(),
                     title=book.title,
                     description=book.description,
-                    language_code=CountryCode.RU.FR.US,
+                    language_code=book.language_code,
                     authors=authors,
                     publication_date=book.publication_date
                 )

@@ -1,10 +1,11 @@
+from sqlalchemy.dialects.postgresql import ARRAY
 from db.database import Base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from db.author_book import author_book
 from sqlalchemy import DateTime, func, ForeignKey, Date
-from datetime import datetime, date
+from datetime import datetime
 from sqlalchemy import Enum as SQLEnum
-from enums.enum import CountryCode
+from enums.enum import LanguageCode
 
 
 class Book(Base):
@@ -19,12 +20,11 @@ class Book(Base):
     title: Mapped[str] = mapped_column(unique=True, nullable=False)
     description: Mapped[str | None] = mapped_column(nullable=True)
 
-    language_code : Mapped[CountryCode] = mapped_column(
-        SQLEnum(CountryCode),
+    language_code : Mapped[LanguageCode] = mapped_column(
+        ARRAY(SQLEnum(LanguageCode)),
         nullable=False
     )
-
-    publication_date : Mapped[date] = mapped_column(Date)
+    publication_date : Mapped[str] = mapped_column(Date)
     page_count : Mapped[int] = mapped_column(nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
