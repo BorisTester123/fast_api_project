@@ -10,7 +10,7 @@ class Author(Base):
 
     author_id : Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
 
-    original_name : Mapped[str] = mapped_column(unique=True)
+    original_name : Mapped[str | None] = mapped_column(unique=True)
     name : Mapped[str | None] = mapped_column(unique=True)
 
     biography: Mapped[str | None] = mapped_column(nullable=True)
