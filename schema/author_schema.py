@@ -1,6 +1,7 @@
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field
 from typing import Optional, Annotated
 from fastapi import Query
+from datetime import datetime
 
 
 class CreateAuthor(BaseModel):
@@ -8,22 +9,8 @@ class CreateAuthor(BaseModel):
     original_name : str = Field(..., max_length=100)
     biography : Optional[str] = Field(None, max_length=100)
     composition : Optional[str] = Field(None, max_length=100)
-    birth_date : str
-    death_date : str = Field(None)
-
-    @field_validator("name")
-    @classmethod
-    def check_author(cls, v):
-        if not v or not v.strip():
-            raise ValueError(422, "Поле 'name' обязательно для заполнения")
-        return v
-
-    @field_validator('birth_date')
-    @classmethod
-    def check_date(cls, v):
-        if not v or not v.strip():
-            raise ValueError(422, "Поле 'birth_date' обязательно для заполнения")
-        return v
+    birth_date : datetime
+    death_date : datetime
 
 class AuthorResponse(BaseModel):
     author_id : int = Field(examples=[1])
@@ -31,8 +18,8 @@ class AuthorResponse(BaseModel):
     original_name: str = Field(examples=['Алексей Пешков'])
     biography : Optional[str] = Field(None, examples=['Русский писатель, просветитель'])
     composition : Optional[str] = Field(None, examples=['Война и мир'])
-    birth_date : Optional[str] = Field(..., examples=['DD.MM.YYYY'])
-    death_date : Optional[str] = Field(None, examples=['DD.MM.YYYY'])
+    birth_date : Optional[datetime] = Field(None, examples=['DD.MM.YYYY'])
+    death_date : Optional[datetime] = Field(None, examples=['DD.MM.YYYY'])
     model_config = ConfigDict(from_attributes=True)
 
 class AuthorTop(BaseModel):

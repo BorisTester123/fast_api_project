@@ -4,7 +4,6 @@ from db.database import async_session
 from db.author import Author
 from schema.author_schema import CreateAuthor, AuthorResponse, AuthorTop, Pagination
 from sqlalchemy import select, update, func
-from fastapi import HTTPException
 
 class AuthorRepository:
     @classmethod
@@ -22,23 +21,18 @@ class AuthorRepository:
                 result = await session.execute(
                     select(Author).where(Author.name == data.name)
                 )
-                create_author = result.scalar_one_or_none()
-                if create_author:
-                    raise HTTPException(422, f"Автор с таким именем: {data.name} уже существует")
                 author = Author(**data.model_dump())
-                session.add(author)
+                session.add(result)
                 await session.flush()
                 await session.refresh(author)
                 return AuthorResponse.model_validate(author)
 
     @classmethod
-    async def find(cls, author_id: int) -> AuthorResponse:
+    async def find_one(cls, author_id: int) -> AuthorResponse:
         async with async_session() as session:
             async with session.begin():
                 result = await session.execute(select(Author).where(Author.author_id == author_id))
                 author = result.scalar_one_or_none()
-            if not author:
-                raise HTTPException(404, f"Автор с таким id - {author_id} не найден")
 
             return AuthorResponse.model_validate(author)
 
@@ -55,8 +49,6 @@ class AuthorRepository:
                 result = await session.execute(stmt)
 
                 update_author = result.scalar_one_or_none()
-            if not update_author:
-                raise HTTPException(404, f"Автор с таким ID: {author_id} не найден")
             return AuthorResponse.model_validate(update_author)
 
     @classmethod

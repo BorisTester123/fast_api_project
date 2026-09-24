@@ -39,6 +39,7 @@ async def login(
             "login.html",
             {
                 "request" : request,
+                "session" : db,
                 "error" : "Неверный логин или пароль"
             }
         )

@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import APIRouter, HTTPException, Depends
 from schema.book_schema import BookResponse, BookCreate, ErrorResponse, ErrorMessage
 from repository.book_repository import BookRepository
@@ -17,7 +18,7 @@ router = APIRouter(
             },
             response_model=list[BookResponse],
             dependencies=[Depends(check_auth)])
-async def all():
+async def get_all():
     return await BookRepository.all()
 
 @router.post("", summary='Создание новой книги', status_code=201,
@@ -47,10 +48,11 @@ async def create(book: BookCreate):
             },
             response_model=BookResponse,
             dependencies=[Depends(check_auth)])
-async def find(book_id: int):
-    book = await BookRepository.find(book_id)
-    if not book:
-        raise HTTPException(status_code=404, detail=f"Книга с таким id: {book_id} не найдена")
+async def find(book_id: int) -> Optional[BookResponse]:
+    try:
+        book = await BookRepository.find(book_id)
+    except ValueError:
+        raise HTTPException(404, f"Книга с таким ID: {book_id} не найдена")
     return book
 
 @router.put("/{book_id}",summary="Изменение книги по ID",
@@ -72,6 +74,8 @@ async def update(book_id: int, book: BookCreate):
     updated_book = await BookRepository.update(book_id, book)
     if not updated_book:
         raise HTTPException(status_code=404, detail=f"Книга с таким id: {book_id} не найдена")
+    if book.title:
+        raise HTTPException(422, f'Книга с таким названием - {book.title} уже существует')
     return updated_book
 
 @router.delete("/{book_id}", summary="Удаление книги по ID",
@@ -91,6 +95,7 @@ async def update(book_id: int, book: BookCreate):
                dependencies=[Depends(check_auth)])
 async def delete(book_id: int):
     book = await BookRepository.find(book_id)
+    if book is None:
+        raise HTTPException(status_code=404, detail=f"Книга с ID {book_id} не найдена")
     await BookRepository.delete(book_id)
     return book
-

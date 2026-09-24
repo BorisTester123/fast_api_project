@@ -16,8 +16,15 @@ class Author(Base):
     biography: Mapped[str | None] = mapped_column(nullable=True)
     composition : Mapped[str | None] = mapped_column(nullable=True)
 
-    birth_date : Mapped[str] = mapped_column(nullable=False)
-    death_date : Mapped[str | None] = mapped_column(nullable=True)
+    birth_date: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False
+    )
+
+    death_date: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True
+    )
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -37,13 +44,13 @@ class Author(Base):
         nullable=True
     )
 
-    created_by : Mapped[int] = mapped_column(
+    created_by : Mapped[datetime] = mapped_column(
         ForeignKey("users.id"),
         nullable=False,
         server_default='1'
     )
 
-    updated_by: Mapped[int | None] = mapped_column(
+    updated_by: Mapped[datetime | None] = mapped_column(
         ForeignKey("users.id"),
         nullable=False,
         server_default='1'
